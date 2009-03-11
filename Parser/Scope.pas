@@ -7,9 +7,15 @@ uses Tokens;
 type
   TParserHash = Byte;
   
-  TIdentifierType = (itUnknown, itUndeclared, itType);
+  TIdentifierType = (itUnknown, itUndeclared, itType, itVariable, itFunction);
 
   PIdentifier = ^TIdentifier;
+  PScope = ^TScope;
+  PType = ^TType;
+  PVariable = ^TVariable;
+  PFunctionHeader = ^TFunctionHeader;
+  PFunction = ^TFunction;
+  
   TIdentifier = object
     Name: PAnsiChar;
     Next: PIdentifier;
@@ -17,21 +23,44 @@ type
     procedure Free;
   end;
 
-  PType = ^TType;
+
   TType = object(TIdentifier)
     Extends: PIdentifier;
   end;
 
-  PScope = ^TScope;
+  TVariableFlag = (vfArray, vfParameter, vfConstant);
+  TVariableFlags = set of TVariableFlag;
+
+
+  TVariable = object(TIdentifier)
+    Flags: TVariableFlags;
+    VariableType: PType;
+  end;
+
+  TFunctionHeader = record
+    Parameters: array of PVariable;
+    Returns: PType;
+  end;
+
+  TFunction = object(TIdentifier)
+    Header: TFunctionHeader;
+    Native: Boolean;
+    Constant: Boolean;
+    Scope: PScope;
+  end;
+
   TScope = object
     private
       FBuckets: array [TParserHash] of PIdentifier;
+      FIncomplete: PIdentifier;
     public
       Parent: PScope;
       procedure Init;
       procedure Add(Identifier: PIdentifier);
-      function Declare(IdentifierType: TIdentifierType; Size: Cardinal): PIdentifier;
+      procedure Declare(Identifier: PIdentifier);
       function DeclareType: PType;
+      function DeclareVariable: PVariable;
+      function DeclareFunction: PFunction;
       function Find(Recursive: Boolean): PIdentifier; overload;
       function Find(IdentifierType: TIdentifierType): PIdentifier; overload;
       function FindType: PType;
@@ -40,7 +69,7 @@ type
 
 const
   IdentifierName: array [TIdentifierType] of PAnsiChar = (
-    'unknown', 'undeclared', 'type'
+    'unknown', 'undeclared', 'type', 'variable', 'function'
   );
 
 implementation
@@ -49,6 +78,18 @@ uses Windows, SysUtils, Dialogs, Scanner, Errors, Documents, Blocks;
 
 procedure TIdentifier.Free;
 begin
+  case IdentifierType of
+    itFunction:
+      begin
+        with PFunction(@Self)^ do
+          begin
+            SetLength(Header.Parameters, 0);
+            Scope.Free;
+            Dispose(Scope);
+          end;
+      end;
+  end;
+
   Dispose(Name);
   Dispose(@Self);
 end;
@@ -56,6 +97,7 @@ end;
 procedure TScope.Init;
 begin
   FillChar(FBuckets[0], SizeOf(PIdentifier) * Length(FBuckets), 0);
+  FIncomplete := nil;
 end;
 
 procedure TScope.Add(Identifier: PIdentifier);
@@ -101,13 +143,23 @@ begin
     end;
 end;
 
-function TScope.Declare(IdentifierType: TIdentifierType; Size: Cardinal): PIdentifier;
+procedure TScope.Declare(Identifier: PIdentifier);
 var
   Current, Dummy: PIdentifier;
   Length: Cardinal;
   Start: PAnsiChar;
   ErrorInfo: PErrorInfo;
+
 begin
+  if not Match(ttIdentifier, False) then
+    begin
+      Identifier.Name := nil;
+      Identifier.Next := FIncomplete;
+      FIncomplete := Identifier;
+      
+      Exit;
+    end;
+    
   Current := FBuckets[Token.Hash];
 
   if Current <> nil then
@@ -118,10 +170,15 @@ begin
       repeat
         if StrLComp(Start, Current.Name, Length) = 0 then
           begin
-            ErrorInfo := NewError(eiRedeclared);
+            ErrorInfo := TErrorInfo.Create(eiRedeclared);
             ErrorInfo.Identifier := Current;
-            Error(ErrorInfo);
-            Result := nil;
+            ErrorInfo.Report;
+
+            Identifier.Name := nil;
+            Identifier.Next := FIncomplete;
+            FIncomplete := Identifier;
+
+            Next;
             Exit;
           end;
 
@@ -129,11 +186,11 @@ begin
 
         if Dummy = nil then
           begin
-            GetMem(Result, Size);
-            Result.IdentifierType := IdentifierType;
-            Result.Name := Token.StrNew;
-            Current.Next := Result;
-            Result.Next := nil;
+            Identifier.Name := Token.StrNew;
+            Current.Next := Identifier;
+            Identifier.Next := nil;
+
+            Next;
             Exit;
           end;
 
@@ -143,26 +200,39 @@ begin
     end
   else
     begin
-      GetMem(Result, Size);
-      Result.IdentifierType := IdentifierType;
-      Result.Name := Token.StrNew;
-      FBuckets[Token.Hash] := Result;
-      Result.Next := nil;
+      Identifier.Name := Token.StrNew;
+      FBuckets[Token.Hash] := Identifier;
+      Identifier.Next := nil;
+      
+      Next;
     end;
 end;
 
 function TScope.DeclareType: PType;
 begin
-  if not Match(ttIdentifier, False) then
-    begin
-      Next;
-      Result := nil;
-      Exit;
-    end;
-    
-  Result := PType(Declare(itType, SizeOf(TType)));
-  
-  Next;
+  New(Result);
+  Result.IdentifierType := itType;
+  Declare(Result);
+end;
+
+function TScope.DeclareVariable: PVariable;
+begin
+  New(Result);
+  Result.IdentifierType := itVariable;
+  Declare(Result);
+end;
+
+function TScope.DeclareFunction: PFunction;
+begin
+  New(Result);
+
+  New(Result.Scope);
+  Result.Scope.Init;
+  Result.Scope.Parent := Blocks.Scope;
+
+  Result.Header.Returns := nil;
+  Result.IdentifierType := itFunction;
+  Declare(Result);
 end;
 
 function TScope.Find(Recursive: Boolean): PIdentifier;
@@ -179,11 +249,15 @@ begin
       Length := Token.Length;
       Start := Token.Start;
 
-      if StrLComp(Start, Current.Name, Length) = 0 then
-        begin
-          Result := Current;
-          Exit;
-        end;
+      repeat
+        if StrLComp(Start, Current.Name, Length) = 0 then
+          begin
+            Result := Current;
+            Exit;
+          end;
+
+        Current := Current.Next;
+      until Current = nil;
     end;
 
   Result := nil;
@@ -211,20 +285,20 @@ begin
 
   if Result = nil then
     begin
-        ErrorInfo := NewError(eiUndeclaredIdentifier);
-        ErrorInfo.IdentifierString := Token.StrNew;
-        Error(ErrorInfo);
+        ErrorInfo := TErrorInfo.Create(eiUndeclaredIdentifier);
+        ErrorInfo.Info := Token.StrNew;
+        ErrorInfo.Report;
     end
   else
     if Result.IdentifierType <> IdentifierType then
       begin
-        ErrorInfo := NewError(eiExpectedIdentifier);
+        ErrorInfo := TErrorInfo.Create(eiExpectedIdentifier);
         
         ErrorInfo.ExpectedIdentifier := IdentifierType;
         ErrorInfo.FoundIdentifier := Result.IdentifierType;
-        ErrorInfo.FoundIdentifierString := Result.Name;
+        ErrorInfo.InfoPointer := Result.Name;
 
-        Error(ErrorInfo);
+        ErrorInfo.Report;
       end;
 end;
 
@@ -232,7 +306,6 @@ function TScope.FindType: PType;
 begin
   if not Match(ttIdentifier, False) then
     begin
-      Next;
       Result := nil;
       Exit;
     end;
@@ -242,22 +315,30 @@ begin
   Next;
 end;
 
-procedure TScope.Free;
-var Hash: TParserHash;
-  Identifier, Dummy: PIdentifier;
+procedure FreeIdentifierList(const Identifier: PIdentifier);
+var
+  Current, Dummy: PIdentifier;
 begin
-  for Hash := Low(Hash) to High(Hash) do
+  Current := Identifier;
+
+  while Current <> nil do
     begin
-      Identifier := FBuckets[Hash];
-      while Identifier <> nil do
-        begin
-          Dummy := Identifier;
+      Dummy := Current;
 
-          Identifier := Identifier.Next;
+      Current := Current.Next;
 
-          Dummy.Free;
-        end;
+      Dummy.Free;
     end;
+end;
+
+procedure TScope.Free;
+var
+  Hash: TParserHash;
+begin
+  FreeIdentifierList(FIncomplete);
+
+  for Hash := Low(Hash) to High(Hash) do
+    FreeIdentifierList(FBuckets[Hash]);
 end;
 
 end.

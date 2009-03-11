@@ -38,6 +38,8 @@ initialization
   DeclareType('string');
   DeclareType('integer');
   DeclareType('real');
+  DeclareType('boolean');
+  DeclareType('code');
 
 
 finalization

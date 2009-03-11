@@ -27,7 +27,6 @@ type
     procedure ActionExecute(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormCreate(Sender: TObject);
     procedure HintTimerTimer(Sender: TObject);
     procedure ScintillaMouseMove(Sender: TObject; Shift: TShiftState; X,
@@ -38,6 +37,7 @@ type
     procedure FormDeactivate(Sender: TObject);
     procedure ScintillaMouseLeave(Sender: TObject);
     procedure ScintillaMouseEnter(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
   public
@@ -113,7 +113,17 @@ begin
     end;
 end;
 
-procedure TJassForm.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TJassForm.FormCreate(Sender: TObject);
+begin
+  ToolTip := TToolTip.Create(Scintilla);
+end;
+
+procedure TJassForm.FormDeactivate(Sender: TObject);
+begin
+  ToolTip.Hide;
+end;
+
+procedure TJassForm.FormDestroy(Sender: TObject);
 begin
   ToolTip.Free;
   
@@ -127,16 +137,6 @@ begin
       DocInfo := nil;
       Doc := nil;
     end;
-end;
-
-procedure TJassForm.FormCreate(Sender: TObject);
-begin
-  ToolTip := TToolTip.Create(Scintilla);
-end;
-
-procedure TJassForm.FormDeactivate(Sender: TObject);
-begin
-  ToolTip.Hide;
 end;
 
 procedure TJassForm.FormShow(Sender: TObject);

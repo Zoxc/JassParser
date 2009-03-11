@@ -115,7 +115,7 @@ begin
       SearchForm.Memo.Lines.Add('');
     end;
 
-  SearchForm.Memo.Lines.Add('procedure InitIdentifierJumpTable;');
+  SearchForm.Memo.Lines.Add('procedure InitKeywords;');
   SearchForm.Memo.Lines.Add('var i: Byte;');
   SearchForm.Memo.Lines.Add('begin');
   SearchForm.Memo.Lines.Add('  for i := 0 to 255 do');

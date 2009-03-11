@@ -2,12 +2,13 @@ unit Scanner;
 
 interface
 
-uses SysUtils, Classes, Tokens, Scope, Errors;
+uses SysUtils, Classes, Tokens, Scope;
 
 type
   PDocumentInfo = ^TDocumentInfo;
   PTokenInfo = ^TTokenInfo;
-
+  PErrorInfo = ^TErrorInfo;
+  
   TTokenInfo = record
     Token: TTokenType;
     Start: PAnsiChar;
@@ -37,6 +38,36 @@ type
     procedure Free;
   end;
 
+  TErrorType = (eiInvalidChars, eiNumInIdent, eiExpectedToken, eiUnexpectedToken,
+    eiChildErrors, eiRedeclared, eiExpectedIdentifier, eiUndeclaredIdentifier,
+    eiConstantNeedInit);
+
+  TErrorInfo = record
+    Start: PAnsiChar;
+    Length: Cardinal;
+    
+    Line: Cardinal;
+    LineStart: PAnsiChar;
+
+    Info, InfoPointer: PAnsiChar;
+
+    Next: PErrorInfo;
+
+    class function Create(const ErrorType: TErrorType): PErrorInfo; overload; static;
+    class function Create(const ErrorType: TErrorType; const Token: TTokenInfo): PErrorInfo; overload; static;
+    procedure Free;
+
+    procedure Report;
+    function ToString: String;
+
+    case ErrorType: TErrorType of
+      eiUnexpectedToken: (UnexpectedToken: TTokenType);
+      eiExpectedToken: (ExpectedToken: TTokenType; FoundToken: TTokenType);
+      eiChildErrors: (Child: Pointer);
+      eiRedeclared: (Identifier: PIdentifier);
+      eiExpectedIdentifier: (ExpectedIdentifier: TIdentifierType; FoundIdentifier: TIdentifierType);
+  end;
+
 var
   Token: TTokenInfo;
   Input: PAnsiChar;
@@ -58,13 +89,18 @@ const
 
   Known = Ident + White + Operators + LineEnd;
 
+{ Error handling }
+function Match(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline;
+function Matches(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline;
+procedure Expected(TokenType: TTokenType; DoSkip: Boolean = False);
+procedure Unexpected(DoSkip: Boolean = True);
+
 function Parse(Text: PAnsiChar): PDocumentInfo;
 procedure Next; inline;
-procedure NextLine; inline;
+procedure EndOfLine; inline;
 
 function GetLength(Start, Stop: PAnsiChar): Cardinal; inline;
 
-function Match(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline;
 
 function HashString(Text: PAnsiChar): TParserHash;
 
@@ -73,6 +109,142 @@ procedure Init;
 implementation
 
 uses Dialogs, ScannerKeywordsSearch;
+
+{ Error handling }
+
+procedure Expected(TokenType: TTokenType; DoSkip: Boolean = False);
+var ErrorInfo: PErrorInfo;
+begin
+  ErrorInfo := TErrorInfo.Create(eiExpectedToken);
+  ErrorInfo.FoundToken := Token.Token;
+  ErrorInfo.ExpectedToken := TokenType;
+
+  if Token.Token in [ttIdentifier, ttNumber] then
+    ErrorInfo.Info := Token.StrNew;
+    
+  ErrorInfo.Report;
+
+  if DoSkip then
+    Next;
+end;
+
+procedure Unexpected(DoSkip: Boolean = True);
+var ErrorInfo: PErrorInfo;
+begin
+  ErrorInfo := TErrorInfo.Create(eiUnexpectedToken);
+  ErrorInfo.UnexpectedToken := Token.Token;
+
+  if Token.Token in [ttIdentifier, ttNumber] then
+    ErrorInfo.Info := Token.StrNew;
+
+  ErrorInfo.Report;
+
+  if DoSkip then
+    Next;
+end;
+
+procedure ChildErrors(Document, Child: PDocumentInfo);
+var ErrorInfo: PErrorInfo;
+begin
+  if Child.Errors <> nil then
+    Exit;
+
+  ErrorInfo := TErrorInfo.Create(eiChildErrors);
+  ErrorInfo.Child := Child;
+  ErrorInfo.Start := Child.Start;
+  ErrorInfo.Length := GetLength(Child.Start, Child.Stop);
+  ErrorInfo.Line := Child.Line;
+  ErrorInfo.LineStart := Child.LineStart;
+  
+  ErrorInfo.Next := Document.Errors;
+  Document.Errors := ErrorInfo;
+
+  if Document.Owner <> nil then
+    ChildErrors(Document.Owner, Document);
+end;
+
+{ TErrorInfo }
+
+procedure TErrorInfo.Report;
+begin
+  if Token.Error then
+    begin
+      Free;
+      Exit;
+    end;
+
+  //Token.Error := True;
+
+  if Token.Document.Owner <> nil then
+    ChildErrors(Token.Document.Owner, Token.Document);
+
+  Next := Token.Document.Errors;
+  Token.Document.Errors := @Self;
+end;
+
+class function TErrorInfo.Create(const ErrorType: TErrorType; const Token: TTokenInfo): PErrorInfo;
+begin
+  New(Result);
+  Result.ErrorType := ErrorType;
+
+  Result.Start := Token.Start;
+  Result.Length := Token.Length;
+  Result.Line := Token.Line;
+  Result.LineStart := Token.LineStart;
+  Result.Info := nil;
+
+  if Token.Token = ttLine then
+    begin
+      Dec(Result.Line);
+      Result.Start := Token.Stop;
+      Result.Length := 0;
+      Result.LineStart := Token.Start;
+    end;
+end;
+
+class function TErrorInfo.Create(const ErrorType: TErrorType): PErrorInfo;
+begin
+  Result := Create(ErrorType, Token);
+end;
+
+function TErrorInfo.ToString: String;
+begin
+ case ErrorType of
+    eiInvalidChars:
+      if Length > 1 then
+        Result := 'Invalid characters ''' + Info + ''''
+      else
+        Result := 'Invalid character ''' + Info + '''';
+
+    eiNumInIdent: Result := 'Identifiers can''t begin with numerals';
+    eiChildErrors: Result := PDocumentInfo(Child).Name + ' has errors';
+    eiRedeclared: Result := '''' + Identifier.Name + ''' has already been declared';
+    eiExpectedIdentifier: Result := 'Excepted ''' + IdentifierName[ExpectedIdentifier] + ''', but found ''' + InfoPointer + ''' (' + IdentifierName[FoundIdentifier] + ')';
+    eiUndeclaredIdentifier: Result := 'Undeclared identifier ''' + Info + '''';
+    eiConstantNeedInit: Result := 'Constant variable ''' + Info + ''' needs initialization';
+    eiExpectedToken:
+      if Info = nil then
+        Result := 'Excepted ''' + TokenName[ExpectedToken] + ''', but found ''' + TokenName[FoundToken] + ''''
+      else
+        Result := 'Excepted ''' + TokenName[ExpectedToken] + ''', but found ''' + Info + ''' (' + TokenName[FoundToken] + ')';
+
+    eiUnexpectedToken:
+      if Info = nil then
+        Result := 'Unexpected ''' + TokenName[UnexpectedToken] + ''''
+      else
+        Result := 'Unexpected ''' + Info + ''' (' + TokenName[UnexpectedToken] + ')';
+
+    else Result := 'Unknown Error';
+  end;
+end;
+
+procedure TErrorInfo.Free;
+begin
+  if Info <> nil then
+    Dispose(Info);
+
+  Dispose(@Self);
+end;
 
 function HashString(Text: PAnsiChar): TParserHash;
 begin
@@ -130,7 +302,7 @@ begin
   while ErrorInfo <> nil do
     begin
       ErrorDummy := ErrorInfo;
-      ErrorInfo := ErrorInfo.Next ;
+      ErrorInfo := ErrorInfo.Next;
       ErrorDummy.Free;
     end;
 
@@ -168,6 +340,23 @@ begin
   Move(Token.Start^, PChar(Result)^, Token.Length);
 end;
 
+function Matches(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean;
+begin
+  if Token.Token <> AToken then
+      Result := False
+  else
+    begin
+      if GoNext then
+        begin
+          {if Token.Token in [ttLine, ttEnd] then
+            Token.Error := False
+          else}
+            Next;
+        end;
+      Result := True;
+    end;
+end;
+
 function Match(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean;
 begin
   if Token.Token <> AToken then
@@ -196,7 +385,7 @@ begin
   Token.Stop := Input;
 end;
 
-procedure NextLine;
+procedure EndOfLine;
 begin
   if Token.Token = ttEnd then
     Exit;
@@ -242,9 +431,6 @@ end;
 
 procedure Next;
 begin
-    while Input^ in White do
-      Inc(Input);
-
     Token.Start := Input;
 
     if Token.Error then
@@ -274,23 +460,29 @@ end;
 procedure LineFeedProc;
 begin
   Token.Token := ttLine;
+  Token.Start := Token.LineStart;
+  Token.Stop := Input;
+
   Inc(Input);
 
   Inc(Token.Line);
-  Token.Stop := Input;
+
   Token.LineStart := Input;
 end;
 
 procedure CarrigeReturnProc;
 begin
   Token.Token := ttLine;
+  Token.Start := Token.LineStart;
+  Token.Stop := Input;
+
   Inc(Input);
 
   if Input^ = #10 then
     Inc(Input);
 
   Inc(Token.Line);
-  Token.Stop := Input;
+
   Token.LineStart := Input;
 end;
 
@@ -356,15 +548,10 @@ begin
       Token.Token := ttIdentifier;
       Token.Stop := Input;
 
-      Error(NewError(eiNumInIdent));
+      TErrorInfo.Create(eiNumInIdent).Report;
     end
   else
     Token.Stop := Input;
-end;
-
-procedure EqualProc;
-begin
-  Single(ttEqual);
 end;
 
 procedure UnknownProc;
@@ -375,11 +562,29 @@ begin
 
   Token.Stop := Input;
 
-  ErrorInfo := NewError(eiInvalidChars);
-  ErrorInfo.Characters := Token.StrNew;
-  Error(ErrorInfo);
+  ErrorInfo := TErrorInfo.Create(eiInvalidChars);
+  ErrorInfo.Info := Token.StrNew;
+  ErrorInfo.Report;
+  
+  Next;
+end;
+
+procedure WhiteProc;
+begin
+  while Input^ in White do
+    Inc(Input);
 
   Next;
+end;
+
+procedure EqualProc;
+begin
+  Single(ttEqual);
+end;
+
+procedure CommaProc;
+begin
+  Single(ttComma);
 end;
 
 procedure Init;
@@ -406,12 +611,23 @@ begin
   for i := '0' to '9' do
     JumpTable[Byte(i)] := NumProc;
 
+  // White
+  for i := #1 to #9 do
+    JumpTable[Byte(i)] := WhiteProc;
+
+  JumpTable[Byte(#11)] := WhiteProc;
+  JumpTable[Byte(#12)] := WhiteProc;
+
+  for i := #14 to #32 do
+    JumpTable[Byte(i)] := WhiteProc;
+
   // Others
   JumpTable[Byte(#0)] := NullProc;
   JumpTable[Byte(#10)] := LineFeedProc;
   JumpTable[Byte(#13)] := CarrigeReturnProc;
   JumpTable[Byte('/')] := CommentProc;
   JumpTable[Byte('=')] := EqualProc;
+  JumpTable[Byte(',')] := CommaProc;
 end;
 
 end.

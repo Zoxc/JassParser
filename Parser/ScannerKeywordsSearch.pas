@@ -131,6 +131,19 @@ begin
    end;
 end;
 
+procedure IdentifierHashF7(Start, Stop: PAnsiChar);
+var
+  Length: Cardinal;
+begin
+ Length := Cardinal(Stop) - Cardinal(Start);
+
+ if StrLComp(Start, 'nothing', Length) = 0 then
+   begin
+     Token.Token := TTokenType(24);
+     Exit;
+   end;
+end;
+
 procedure IdentifierHash6A(Start, Stop: PAnsiChar);
 var
   Length: Cardinal;
@@ -139,7 +152,7 @@ begin
 
  if StrLComp(Start, 'constant', Length) = 0 then
    begin
-     Token.Token := TTokenType(24);
+     Token.Token := TTokenType(25);
      Exit;
    end;
 end;
@@ -152,7 +165,7 @@ begin
 
  if StrLComp(Start, 'native', Length) = 0 then
    begin
-     Token.Token := TTokenType(25);
+     Token.Token := TTokenType(26);
      Exit;
    end;
 end;
@@ -165,7 +178,7 @@ begin
 
  if StrLComp(Start, 'type', Length) = 0 then
    begin
-     Token.Token := TTokenType(26);
+     Token.Token := TTokenType(27);
      Exit;
    end;
 end;
@@ -178,13 +191,13 @@ begin
 
  if StrLComp(Start, 'extends', Length) = 0 then
    begin
-     Token.Token := TTokenType(27);
+     Token.Token := TTokenType(28);
      Exit;
    end
 
  else if StrLComp(Start, 'private', Length) = 0 then
    begin
-     Token.Token := TTokenType(60);
+     Token.Token := TTokenType(62);
      Exit;
    end;
 end;
@@ -197,7 +210,7 @@ begin
 
  if StrLComp(Start, 'array', Length) = 0 then
    begin
-     Token.Token := TTokenType(28);
+     Token.Token := TTokenType(29);
      Exit;
    end;
 end;
@@ -210,7 +223,20 @@ begin
 
  if StrLComp(Start, 'library', Length) = 0 then
    begin
-     Token.Token := TTokenType(29);
+     Token.Token := TTokenType(30);
+     Exit;
+   end;
+end;
+
+procedure IdentifierHashF9(Start, Stop: PAnsiChar);
+var
+  Length: Cardinal;
+begin
+ Length := Cardinal(Stop) - Cardinal(Start);
+
+ if StrLComp(Start, 'library_once', Length) = 0 then
+   begin
+     Token.Token := TTokenType(31);
      Exit;
    end;
 end;
@@ -223,7 +249,7 @@ begin
 
  if StrLComp(Start, 'endlibrary', Length) = 0 then
    begin
-     Token.Token := TTokenType(30);
+     Token.Token := TTokenType(32);
      Exit;
    end;
 end;
@@ -236,7 +262,7 @@ begin
 
  if StrLComp(Start, 'requires', Length) = 0 then
    begin
-     Token.Token := TTokenType(31);
+     Token.Token := TTokenType(33);
      Exit;
    end;
 end;
@@ -249,7 +275,7 @@ begin
 
  if StrLComp(Start, 'needs', Length) = 0 then
    begin
-     Token.Token := TTokenType(32);
+     Token.Token := TTokenType(34);
      Exit;
    end;
 end;
@@ -262,7 +288,7 @@ begin
 
  if StrLComp(Start, 'uses', Length) = 0 then
    begin
-     Token.Token := TTokenType(33);
+     Token.Token := TTokenType(35);
      Exit;
    end;
 end;
@@ -275,7 +301,7 @@ begin
 
  if StrLComp(Start, 'initializer', Length) = 0 then
    begin
-     Token.Token := TTokenType(34);
+     Token.Token := TTokenType(36);
      Exit;
    end;
 end;
@@ -288,7 +314,7 @@ begin
 
  if StrLComp(Start, 'set', Length) = 0 then
    begin
-     Token.Token := TTokenType(35);
+     Token.Token := TTokenType(37);
      Exit;
    end;
 end;
@@ -301,7 +327,7 @@ begin
 
  if StrLComp(Start, 'call', Length) = 0 then
    begin
-     Token.Token := TTokenType(36);
+     Token.Token := TTokenType(38);
      Exit;
    end;
 end;
@@ -314,7 +340,7 @@ begin
 
  if StrLComp(Start, 'and', Length) = 0 then
    begin
-     Token.Token := TTokenType(37);
+     Token.Token := TTokenType(39);
      Exit;
    end;
 end;
@@ -327,13 +353,13 @@ begin
 
  if StrLComp(Start, 'not', Length) = 0 then
    begin
-     Token.Token := TTokenType(38);
+     Token.Token := TTokenType(40);
      Exit;
    end
 
  else if StrLComp(Start, 'endscope', Length) = 0 then
    begin
-     Token.Token := TTokenType(41);
+     Token.Token := TTokenType(43);
      Exit;
    end;
 end;
@@ -346,7 +372,7 @@ begin
 
  if StrLComp(Start, 'or', Length) = 0 then
    begin
-     Token.Token := TTokenType(39);
+     Token.Token := TTokenType(41);
      Exit;
    end;
 end;
@@ -359,7 +385,7 @@ begin
 
  if StrLComp(Start, 'scope', Length) = 0 then
    begin
-     Token.Token := TTokenType(40);
+     Token.Token := TTokenType(42);
      Exit;
    end;
 end;
@@ -372,7 +398,7 @@ begin
 
  if StrLComp(Start, 'interface', Length) = 0 then
    begin
-     Token.Token := TTokenType(42);
+     Token.Token := TTokenType(44);
      Exit;
    end;
 end;
@@ -385,7 +411,7 @@ begin
 
  if StrLComp(Start, 'endinterface', Length) = 0 then
    begin
-     Token.Token := TTokenType(43);
+     Token.Token := TTokenType(45);
      Exit;
    end;
 end;
@@ -398,7 +424,7 @@ begin
 
  if StrLComp(Start, 'defaults', Length) = 0 then
    begin
-     Token.Token := TTokenType(44);
+     Token.Token := TTokenType(46);
      Exit;
    end;
 end;
@@ -411,7 +437,7 @@ begin
 
  if StrLComp(Start, 'struct', Length) = 0 then
    begin
-     Token.Token := TTokenType(45);
+     Token.Token := TTokenType(47);
      Exit;
    end;
 end;
@@ -424,7 +450,7 @@ begin
 
  if StrLComp(Start, 'endstruct', Length) = 0 then
    begin
-     Token.Token := TTokenType(46);
+     Token.Token := TTokenType(48);
      Exit;
    end;
 end;
@@ -437,7 +463,7 @@ begin
 
  if StrLComp(Start, 'method', Length) = 0 then
    begin
-     Token.Token := TTokenType(47);
+     Token.Token := TTokenType(49);
      Exit;
    end;
 end;
@@ -450,7 +476,7 @@ begin
 
  if StrLComp(Start, 'endmethod', Length) = 0 then
    begin
-     Token.Token := TTokenType(48);
+     Token.Token := TTokenType(50);
      Exit;
    end;
 end;
@@ -463,13 +489,13 @@ begin
 
  if StrLComp(Start, 'operator', Length) = 0 then
    begin
-     Token.Token := TTokenType(49);
+     Token.Token := TTokenType(51);
      Exit;
    end
 
  else if StrLComp(Start, 'exitwhen', Length) = 0 then
    begin
-     Token.Token := TTokenType(59);
+     Token.Token := TTokenType(61);
      Exit;
    end;
 end;
@@ -482,7 +508,7 @@ begin
 
  if StrLComp(Start, 'return', Length) = 0 then
    begin
-     Token.Token := TTokenType(50);
+     Token.Token := TTokenType(52);
      Exit;
    end;
 end;
@@ -495,7 +521,7 @@ begin
 
  if StrLComp(Start, 'local', Length) = 0 then
    begin
-     Token.Token := TTokenType(51);
+     Token.Token := TTokenType(53);
      Exit;
    end;
 end;
@@ -508,7 +534,7 @@ begin
 
  if StrLComp(Start, 'if', Length) = 0 then
    begin
-     Token.Token := TTokenType(52);
+     Token.Token := TTokenType(54);
      Exit;
    end;
 end;
@@ -521,7 +547,7 @@ begin
 
  if StrLComp(Start, 'endif', Length) = 0 then
    begin
-     Token.Token := TTokenType(53);
+     Token.Token := TTokenType(55);
      Exit;
    end;
 end;
@@ -534,7 +560,7 @@ begin
 
  if StrLComp(Start, 'then', Length) = 0 then
    begin
-     Token.Token := TTokenType(54);
+     Token.Token := TTokenType(56);
      Exit;
    end;
 end;
@@ -547,7 +573,7 @@ begin
 
  if StrLComp(Start, 'else', Length) = 0 then
    begin
-     Token.Token := TTokenType(55);
+     Token.Token := TTokenType(57);
      Exit;
    end;
 end;
@@ -560,7 +586,7 @@ begin
 
  if StrLComp(Start, 'elseif', Length) = 0 then
    begin
-     Token.Token := TTokenType(56);
+     Token.Token := TTokenType(58);
      Exit;
    end;
 end;
@@ -573,7 +599,7 @@ begin
 
  if StrLComp(Start, 'loop', Length) = 0 then
    begin
-     Token.Token := TTokenType(57);
+     Token.Token := TTokenType(59);
      Exit;
    end;
 end;
@@ -586,7 +612,7 @@ begin
 
  if StrLComp(Start, 'endloop', Length) = 0 then
    begin
-     Token.Token := TTokenType(58);
+     Token.Token := TTokenType(60);
      Exit;
    end;
 end;
@@ -599,7 +625,7 @@ begin
 
  if StrLComp(Start, 'public', Length) = 0 then
    begin
-     Token.Token := TTokenType(61);
+     Token.Token := TTokenType(63);
      Exit;
    end;
 end;
@@ -612,7 +638,7 @@ begin
 
  if StrLComp(Start, 'stub', Length) = 0 then
    begin
-     Token.Token := TTokenType(62);
+     Token.Token := TTokenType(64);
      Exit;
    end;
 end;
@@ -625,7 +651,7 @@ begin
 
  if StrLComp(Start, 'static', Length) = 0 then
    begin
-     Token.Token := TTokenType(63);
+     Token.Token := TTokenType(65);
      Exit;
    end;
 end;
@@ -638,7 +664,7 @@ begin
 
  if StrLComp(Start, 'delegate', Length) = 0 then
    begin
-     Token.Token := TTokenType(64);
+     Token.Token := TTokenType(66);
      Exit;
    end;
 end;
@@ -651,13 +677,26 @@ begin
 
  if StrLComp(Start, 'keyword', Length) = 0 then
    begin
-     Token.Token := TTokenType(65);
+     Token.Token := TTokenType(67);
+     Exit;
+   end;
+end;
+
+procedure IdentifierHash5E(Start, Stop: PAnsiChar);
+var
+  Length: Cardinal;
+begin
+ Length := Cardinal(Stop) - Cardinal(Start);
+
+ if StrLComp(Start, 'readonly', Length) = 0 then
+   begin
+     Token.Token := TTokenType(68);
      Exit;
    end;
 end;
 
 procedure InitKeywords;
-var i: TParserHash;
+var i: Byte;
 begin
   for i := 0 to 255 do
     IdentifierJumpTable[i] := nil;
@@ -668,12 +707,14 @@ begin
  IdentifierJumpTable[$9D] := IdentifierHash9D;
  IdentifierJumpTable[$18] := IdentifierHash18;
  IdentifierJumpTable[$13] := IdentifierHash13;
+ IdentifierJumpTable[$F7] := IdentifierHashF7;
  IdentifierJumpTable[$6A] := IdentifierHash6A;
  IdentifierJumpTable[$87] := IdentifierHash87;
  IdentifierJumpTable[$C2] := IdentifierHashC2;
  IdentifierJumpTable[$FB] := IdentifierHashFB;
  IdentifierJumpTable[$1F] := IdentifierHash1F;
  IdentifierJumpTable[$F5] := IdentifierHashF5;
+ IdentifierJumpTable[$F9] := IdentifierHashF9;
  IdentifierJumpTable[$2C] := IdentifierHash2C;
  IdentifierJumpTable[$70] := IdentifierHash70;
  IdentifierJumpTable[$0F] := IdentifierHash0F;
@@ -707,6 +748,7 @@ begin
  IdentifierJumpTable[$88] := IdentifierHash88;
  IdentifierJumpTable[$3B] := IdentifierHash3B;
  IdentifierJumpTable[$05] := IdentifierHash05;
+ IdentifierJumpTable[$5E] := IdentifierHash5E;
 end;
 
 {$ENDREGION}

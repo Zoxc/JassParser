@@ -11,8 +11,8 @@ object JassForm: TJassForm
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
-  OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnDeactivate = FormDeactivate
   OnShow = FormShow
   DesignSize = (
@@ -59,29 +59,26 @@ object JassForm: TJassForm
     Anchors = [akLeft, akTop, akRight, akBottom]
     OnVScroll = ScintillaVScroll
     Lines.Strings = (
-      
-        'type event              extends     handle  // a reference to an' +
-        ' event registration'
-      
-        'type player             extends     handle  // a single player r' +
-        'eference'
-      
-        'type widget             extends     handle  // an interactive ga' +
-        'me object with life'
-      
-        'type unit               extends     widget  // a single unit ref' +
-        'erence'
-      
-        'type unit               extends     widget  // a single unit ref' +
-        'erence'
+      'type event extends handle'
+      'type unit extends widget'
       ''
-      '  globals    $~'#168
+      'globals    $~'#168' // Invalid characters'
       ''
-      '//! some command'
-      'no //! no command'
-      '// normal comment'
+      '    constant boolean Test'
+      '    unit array Folks'
       ''
-      ' endglobals')
+      '    //! some command'
+      ''
+      '    event Test'
+      ''
+      '    widget WtfIsWidget'
+      ''
+      ' endglobals'
+      ''
+      
+        'native LeaderboardSetItemLabelColor     takes leaderboard lb, in' +
+        'teger whichItem, integer red, integer green, integer blue, integ' +
+        'er alpha returns nothing')
     EOLStyle = eolCRLF
     Indentation = [TabIndents]
     IndentWidth = 0
@@ -475,8 +472,6 @@ object JassForm: TJassForm
         ShortCut = 24661
       end>
     SelectedLanguage = 'null'
-    ExplicitWidth = 538
-    ExplicitHeight = 164
   end
   object Button1: TButton
     Left = 416
@@ -488,8 +483,6 @@ object JassForm: TJassForm
     Default = True
     TabOrder = 1
     OnClick = Button1Click
-    ExplicitLeft = 387
-    ExplicitTop = 285
   end
   object Errors: TListBox
     Left = 8
@@ -499,8 +492,6 @@ object JassForm: TJassForm
     Anchors = [akLeft, akRight, akBottom]
     ItemHeight = 13
     TabOrder = 2
-    ExplicitTop = 178
-    ExplicitWidth = 373
   end
   object Button2: TButton
     Left = 416
@@ -511,8 +502,6 @@ object JassForm: TJassForm
     Caption = 'Parse'
     TabOrder = 3
     OnClick = Button2Click
-    ExplicitLeft = 387
-    ExplicitTop = 223
   end
   object Button3: TButton
     Left = 416
@@ -523,8 +512,6 @@ object JassForm: TJassForm
     Caption = 'Parse Demo'
     TabOrder = 4
     OnClick = Button3Click
-    ExplicitLeft = 387
-    ExplicitTop = 254
   end
   object PopupMenu: TPopupMenu
     Left = 64

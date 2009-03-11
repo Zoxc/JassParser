@@ -30,10 +30,10 @@ type
                 // Keywords
                 ttGlobals, ttEndGlobals,
                 ttFunction, ttEndFunction,
-                ttTakes, ttReturns,
+                ttTakes, ttReturns, ttNothing,
                 ttConstant, ttNative,
                 ttType, ttExtends, ttArray,
-                ttLibrary, ttEndLibrary, ttRequires, ttNeeds, ttUses, ttInitializer,
+                ttLibrary, ttLibraryOnce, ttEndLibrary, ttRequires, ttNeeds, ttUses, ttInitializer,
                 ttSet, ttCall,
                 ttAnd, ttNot, ttOr,
                 ttScope, ttEndScope,
@@ -44,7 +44,7 @@ type
                 ttIf, ttEndIf, ttThen, ttElse, ttElseIf,
                 ttLoop, ttEndLoop, ttExitwhen,
                 ttPrivate, ttPublic, ttStub, ttStatic,
-                ttDelegate, ttKeyword
+                ttDelegate, ttKeyword, ttReadOnly
                 );
 
 const
@@ -76,10 +76,10 @@ const
                   //Keywords
                   'globals', 'endglobals',
                   'function', 'endfunction',
-                  'takes', 'returns',
+                  'takes', 'returns', 'nothing',
                   'constant', 'native',
                   'type', 'extends', 'array',
-                  'library', 'endlibrary', 'requires', 'needs', 'uses', 'initializer',
+                  'library', 'library_once', 'endlibrary', 'requires', 'needs', 'uses', 'initializer',
                   'set', 'call',
                   'and', 'not', 'or',
                   'scope', 'endscope',
@@ -90,7 +90,7 @@ const
                   'if', 'endif', 'then', 'else', 'elseif',
                   'loop', 'endloop', 'exitwhen',
                   'private', 'public', 'stub', 'static',
-                  'delegate', 'keyword'
+                  'delegate', 'keyword', 'readonly'
                   );
 
 implementation

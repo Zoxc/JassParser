@@ -9,7 +9,7 @@ var
 
 implementation
 
-uses SysUtils, Blocks, Scope;
+uses SysUtils, Blocks, Scopes;
 
 var NativeDocument: TDocument;
 

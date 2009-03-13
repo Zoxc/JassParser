@@ -2,7 +2,7 @@ unit Scanner;
 
 interface
 
-uses SysUtils, Classes, Tokens, Scope;
+uses SysUtils, Classes, Tokens, Scopes;
 
 type
   PDocumentInfo = ^TDocumentInfo;
@@ -40,7 +40,7 @@ type
 
   TErrorType = (eiInvalidChars, eiNumInIdent, eiExpectedToken, eiUnexpectedToken,
     eiChildErrors, eiRedeclared, eiExpectedIdentifier, eiUndeclaredIdentifier,
-    eiConstantNeedInit);
+    eiConstantNeedInit, eiUnexpectedIdentifier, eiRecursive);
 
   TErrorInfo = record
     Start: PAnsiChar;
@@ -64,7 +64,7 @@ type
       eiUnexpectedToken: (UnexpectedToken: TTokenType);
       eiExpectedToken: (ExpectedToken: TTokenType; FoundToken: TTokenType);
       eiChildErrors: (Child: Pointer);
-      eiRedeclared: (Identifier: PIdentifier);
+      eiRedeclared, eiUnexpectedIdentifier, eiRecursive: (Identifier: PIdentifier);
       eiExpectedIdentifier: (ExpectedIdentifier: TIdentifierType; FoundIdentifier: TIdentifierType);
   end;
 
@@ -94,6 +94,7 @@ function Match(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False
 function Matches(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline;
 procedure Expected(TokenType: TTokenType; DoSkip: Boolean = False);
 procedure Unexpected(DoSkip: Boolean = True);
+procedure UnexpectedIdentifier(Identifier: PIdentifier; DoSkip: Boolean = True);
 
 function Parse(Text: PAnsiChar): PDocumentInfo;
 procedure Next; inline;
@@ -108,7 +109,10 @@ procedure Init;
 
 implementation
 
-uses Dialogs, ScannerKeywordsSearch;
+uses Dialogs, ScannerKeywordsJumpTable;
+
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
 
 { Error handling }
 
@@ -137,6 +141,17 @@ begin
   if Token.Token in [ttIdentifier, ttNumber] then
     ErrorInfo.Info := Token.StrNew;
 
+  ErrorInfo.Report;
+
+  if DoSkip then
+    Next;
+end;
+
+procedure UnexpectedIdentifier(Identifier: PIdentifier; DoSkip: Boolean = True);
+var ErrorInfo: PErrorInfo;
+begin
+  ErrorInfo := TErrorInfo.Create(eiUnexpectedIdentifier);
+  ErrorInfo.Identifier := Identifier;
   ErrorInfo.Report;
 
   if DoSkip then
@@ -219,14 +234,17 @@ begin
     eiNumInIdent: Result := 'Identifiers can''t begin with numerals';
     eiChildErrors: Result := PDocumentInfo(Child).Name + ' has errors';
     eiRedeclared: Result := '''' + Identifier.Name + ''' has already been declared';
-    eiExpectedIdentifier: Result := 'Excepted ''' + IdentifierName[ExpectedIdentifier] + ''', but found ''' + InfoPointer + ''' (' + IdentifierName[FoundIdentifier] + ')';
+    eiExpectedIdentifier: Result := 'Expected ''' + IdentifierName[ExpectedIdentifier] + ''', but found ''' + InfoPointer + ''' (' + IdentifierName[FoundIdentifier] + ')';
     eiUndeclaredIdentifier: Result := 'Undeclared identifier ''' + Info + '''';
     eiConstantNeedInit: Result := 'Constant variable ''' + Info + ''' needs initialization';
+    eiUnexpectedIdentifier: Result := 'Unexpected identifier ''' + Identifier.Name + ''' (' + IdentifierName[Identifier.IdentifierType] + ')';
+    eiRecursive: Result := 'Function ''' + Identifier.Name + ''' can''t recursively call itself';
+    
     eiExpectedToken:
       if Info = nil then
-        Result := 'Excepted ''' + TokenName[ExpectedToken] + ''', but found ''' + TokenName[FoundToken] + ''''
+        Result := 'Expected ''' + TokenName[ExpectedToken] + ''', but found ''' + TokenName[FoundToken] + ''''
       else
-        Result := 'Excepted ''' + TokenName[ExpectedToken] + ''', but found ''' + Info + ''' (' + TokenName[FoundToken] + ')';
+        Result := 'Expected ''' + TokenName[ExpectedToken] + ''', but found ''' + Info + ''' (' + TokenName[FoundToken] + ')';
 
     eiUnexpectedToken:
       if Info = nil then
@@ -454,7 +472,10 @@ begin
       Next;
     end
   else
-    Token.Token := ttEnd;
+    begin
+      Token.Token := ttEnd;
+      Token.Stop := Input;
+    end;
 end;
 
 procedure LineFeedProc;

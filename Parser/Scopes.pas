@@ -1,4 +1,4 @@
-unit Scope;
+unit Scopes;
 
 interface
 
@@ -61,9 +61,11 @@ type
       function DeclareType: PType;
       function DeclareVariable: PVariable;
       function DeclareFunction: PFunction;
-      function Find(Recursive: Boolean): PIdentifier; overload;
+      function Find(Recursive: Boolean = True): PIdentifier; overload;
       function Find(IdentifierType: TIdentifierType): PIdentifier; overload;
-      function FindType: PType;
+      function FindType(DoSkip: Boolean = True): PType;
+      function FindVariable(DoSkip: Boolean = True): PVariable;
+      function FindFunction(DoSkip: Boolean = True): PFunction;
       procedure Free;
   end;
 
@@ -74,7 +76,7 @@ const
 
 implementation
 
-uses Windows, SysUtils, Dialogs, Scanner, Errors, Documents, Blocks;
+uses Windows, SysUtils, Dialogs, Scanner, Documents, Blocks;
 
 procedure TIdentifier.Free;
 begin
@@ -281,7 +283,7 @@ end;
 function TScope.Find(IdentifierType: TIdentifierType): PIdentifier;
 var ErrorInfo: PErrorInfo;
 begin
-  Result := Find(True);
+  Result := Find;
 
   if Result = nil then
     begin
@@ -302,7 +304,7 @@ begin
       end;
 end;
 
-function TScope.FindType: PType;
+function TScope.FindType(DoSkip: Boolean = True): PType;
 begin
   if not Match(ttIdentifier, False) then
     begin
@@ -312,7 +314,36 @@ begin
     
   Result := PType(Find(itType));
   
-  Next;
+   if DoSkip then
+    Next;
+end;
+
+function TScope.FindVariable(DoSkip: Boolean = True): PVariable;
+begin
+  if not Match(ttIdentifier, False) then
+    begin
+      Result := nil;
+      Exit;
+    end;
+    
+  Result := PVariable(Find(itVariable));
+  
+  if DoSkip then
+    Next;
+end;
+
+function TScope.FindFunction(DoSkip: Boolean = True): PFunction;
+begin
+  if not Match(ttIdentifier, False) then
+    begin
+      Result := nil;
+      Exit;
+    end;
+    
+  Result := PFunction(Find(itFunction));
+
+  if DoSkip then
+    Next;
 end;
 
 procedure FreeIdentifierList(const Identifier: PIdentifier);

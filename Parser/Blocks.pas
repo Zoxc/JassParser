@@ -2,7 +2,7 @@ unit Blocks;
 
 interface
 
-uses SysUtils, Scope, Classes;
+uses SysUtils, Scopes, Classes;
 
 type
   PDocument = ^TDocument;
@@ -19,7 +19,7 @@ var
 
 implementation
 
-uses Scanner, Tokens, Dialogs, Errors;
+uses Scanner, Tokens, Dialogs, Statements;
 
 procedure ParseGlobal;
 var GlobalType: PType;
@@ -154,6 +154,13 @@ begin
   Scope := Func.Scope;
 
   ParseHeader(Func.Header);
+
+  if not IsNative then
+    begin
+      ParseStatements;
+      
+      Match(ttEndFunction);
+    end;
 
   Scope := AScope;
 

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, SciScintillaBase, SciScintillaMemo, SciScintilla, Scanner,
-  ActnList, Menus, SciStreamDefault, Errors, Blocks, ExtCtrls, ToolTip;
+  ActnList, Menus, SciStreamDefault, Blocks, ExtCtrls, ToolTip;
 
 type
   TJassForm = class(TForm)
@@ -61,7 +61,7 @@ var
   
 implementation
 
-uses uTimer, Math;
+uses uTimer, Math, Tokens;
 
 {$R *.dfm}
 
@@ -329,7 +329,11 @@ begin
 
   New(Doc);
   Doc.Init;
-  ParseDocument(Doc^);
+
+  while Token.Token <> ttEnd do
+    Scanner.Next;
+
+  //ParseDocument(Doc^);
 
   Label1.Caption := 'Time: ' + GetTime + ' ms';
 

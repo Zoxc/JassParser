@@ -32,6 +32,8 @@ begin
       C := Input^;
     end;
 
+  Token.Stop := Input;
+
   SetLength(S, Token.Length);
   Move(Token.Start, PAnsiChar(S)^,  Token.Length);
 

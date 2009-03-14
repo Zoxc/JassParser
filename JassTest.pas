@@ -329,11 +329,11 @@ begin
 
   New(Doc);
   Doc.Init;
-
+  {
   while Token.Token <> ttEnd do
     Scanner.Next;
-
-  //ParseDocument(Doc^);
+  }
+  ParseDocument(Doc^);
 
   Label1.Caption := 'Time: ' + GetTime + ' ms';
 

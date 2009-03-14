@@ -9,7 +9,7 @@ procedure InitKeywords;
 
 implementation
 
-uses Dialogs, Scanner, Tokens, SearchCode, HashExplorer, ComCtrls;
+uses Dialogs, Scanner, Tokens, SearchCode, HashExplorer, ComCtrls, Math;
 
 type
   PKeywordArray = ^TKeywordArray;
@@ -18,6 +18,12 @@ type
     Node: TTreeNode;
     Lengths: array of TTokenType;
     Keywords: array of TTokenType;
+  end;
+
+  PKeywordPair = ^TKeywordPair;
+  TKeywordPair = record
+    Hash: Byte;
+    Keyword: TTokenType;
   end;
 
 var
@@ -54,36 +60,9 @@ begin
   Add;
 end;
 
-procedure Compare(Start, Stop: PAnsiChar); register; assembler;
-asm
-  sub edx, eax;
-  cmp edx, 4
-  je @comp1
-  ret
-
-@comp1:
-  push ecx
-
-  mov cl, [eax+0]
-  cmp cl, 't'
-  jne @ret
-
-  movzx ecx, [eax+1]
-  cmp cl, 'e'
-  jne @ret
-
-  movzx ecx, [eax+2]
-  cmp cl, 's'
-  jne @ret
-
-  movzx ecx, [eax+3]
-  cmp cl, 't'
-  jne @ret
-
-  mov [Token.Token], 1
-
-@ret:
-  pop ecx
+function Compare(Item1, Item2: Pointer): Integer;
+begin
+  Result := PKeywordPair(Item1).Hash -  PKeywordPair(Item2).Hash;
 end;
 
 procedure InitKeywords;
@@ -91,40 +70,90 @@ var
   i: TTokenType;
   Hash: Byte;
   Keyword: PAnsiChar;
-  x, y,Len,z, kl: Integer;
+  x, y,Len,z, kl, lenlow, lenhigh: Integer;
   Test: TList;
+  Pair: PKeywordPair;
+
+  procedure FindHash;
+  var i: Integer;
+  begin
+    for i := 0 to High(Hashes) do
+      if Hashes[i].Hash = x then
+        begin
+          y := i;
+          Exit;
+        end;
+    y := -1;
+  end;
 begin
   Test := TList.Create;
+
+  lenlow := High(Integer);
+  lenhigh := Low(Integer);
+
   for i := ttGlobals to High(TTokenType) do
     begin
       Hash := 0;
       Keyword := TokenName[i];
+      lenlow := Min(lenlow, StrLen(Keyword));
+      lenhigh := Max(lenhigh, StrLen(Keyword));
 
       {$RANGECHECKS OFF}
       {$OVERFLOWCHECKS OFF}
       while Keyword^ <> #0 do
         begin
           Hash := Hash + Byte(Keyword^);
-          {Hash := Hash + (Hash shl 10);
-          Hash := Hash xor (Hash shr 6);}
 
           Inc(Keyword);
         end;
-      
-      {Hash := Hash + (Hash shl 3);
-      Hash := Hash xor (Hash shr 11);
-      Hash := Hash + (Hash shl 15);}
+
       {$OVERFLOWCHECKS ON}
       {$RANGECHECKS ON}
 
-      AddEntry(Hash, i);
+      New(Pair);
+      Pair.Hash := Hash;
+      Pair.Keyword := i;
+
+
+      Test.Add(Pair);
     end;
+
+  Test.Sort(@Compare);
+
+  for x := 0 to Test.Count - 1 do
+    begin
+      AddEntry(PKeywordPair(Test[x]).Hash, PKeywordPair(Test[x]).Keyword);
+      Dispose(Test[x]);
+    end;
+
+  SearchForm.Memo.Lines.Add('  sub edx, ' + IntToStr(lenlow));
+  SearchForm.Memo.Lines.Add('  cmp edx, ' + IntToStr(lenhigh - lenlow));
+  SearchForm.Memo.Lines.Add('  jbe @CheckKeywords');
+  SearchForm.Memo.Lines.Add('  ret');
+  SearchForm.Memo.Lines.Add('');
+  SearchForm.Memo.Lines.Add('@CheckKeywords:');
+  SearchForm.Memo.Lines.Add('  jmp dword ptr [JumpTable + eax * 4]');
+  SearchForm.Memo.Lines.Add('');
+  SearchForm.Memo.Lines.Add('@Return:');
+  SearchForm.Memo.Lines.Add('  ret');
+  SearchForm.Memo.Lines.Add('');
+  SearchForm.Memo.Lines.Add('@JumpTable:');
+
+  for x := 0 to 255 do
+    begin
+      FindHash;
+      if y = -1 then
+        SearchForm.Memo.Lines.Add(' dd @Return')
+      else
+        SearchForm.Memo.Lines.Add(' dd @Check' + IntToHex(x, 2));
+    end;
+
+  // Generate length checks
 
   for x := 0 to High(Hashes) do
     begin
-      SearchForm.Memo.Lines.Add('procedure IdentifierHash' + IntToHex(Hashes[x].Hash, 2) + '(Start, Stop: PAnsiChar); assembler;');
-      SearchForm.Memo.Lines.Add('asm');
-      SearchForm.Memo.Lines.Add('  sub edx, eax');
+      SearchForm.Memo.Lines.Add('');
+      SearchForm.Memo.Lines.Add('@Check' + IntToHex(Hashes[x].Hash, 2) + ':');
 
       Test.Clear;
 
@@ -137,9 +166,24 @@ begin
 
       for y := 0 to Test.Count -1 do
         begin
-          SearchForm.Memo.Lines.Add(' ');
-          SearchForm.Memo.Lines.Add('  cmp edx, ' + IntToStr(Integer(Test[y])));
-          SearchForm.Memo.Lines.Add('  je @Compare' + IntToStr(Integer(Test[y]))+'_0');
+          SearchForm.Memo.Lines.Add('  cmp edx, ' + IntToStr(Integer(Test[y]) - lenlow));
+          SearchForm.Memo.Lines.Add('  je @Compare' + IntToHex(Hashes[x].Hash, 2) + '_' + IntToStr(Integer(Test[y]))+'_0');
+        end;
+
+      SearchForm.Memo.Lines.Add('  ret');
+    end;
+
+  // Full comparasions
+  
+  for x := 0 to High(Hashes) do
+    begin
+      Test.Clear;
+
+      for y := 0 to High(Hashes[x].Keywords) do
+        begin
+          len := StrLen(TokenName[Hashes[x].Keywords[y]]);
+          if Test.IndexOf(Pointer(len)) = -1 then
+            Test.Add(Pointer(len));
         end;
 
       SearchForm.Memo.Lines.Add(' ');
@@ -152,7 +196,7 @@ begin
             if StrLen(TokenName[Hashes[x].Keywords[y]]) = Cardinal(Test[z]) then
               Inc(len);
 
-          SearchForm.Memo.Lines.Add('@Compare' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len)+':');
+          SearchForm.Memo.Lines.Add('@Compare' + IntToHex(Hashes[x].Hash, 2) + '_' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len)+':');
         end;
 
       SearchForm.Memo.Lines.Add('  ret');
@@ -165,17 +209,16 @@ begin
             if StrLen(TokenName[Hashes[x].Keywords[y]]) = Cardinal(Test[z]) then
               begin
                 SearchForm.Memo.Lines.Add('');
-                SearchForm.Memo.Lines.Add('@Compare' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len)+':');
+                SearchForm.Memo.Lines.Add('@Compare' + IntToHex(Hashes[x].Hash, 2) + '_' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len)+':');
 
                 Keyword := TokenName[Hashes[x].Keywords[y]];
                 kl := 0;
 
+                SearchForm.Memo.Lines.Add('');
+
                 while Keyword^ <> #0 do
                   begin
-                    SearchForm.Memo.Lines.Add('');
-                    SearchForm.Memo.Lines.Add('  mov cl, [eax+'+IntToStr(kl)+']');
-                    SearchForm.Memo.Lines.Add('  cmp cl, ''' + Keyword^ + '''');
-                    SearchForm.Memo.Lines.Add('  jne @Compare' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len + 1));
+                    SearchForm.Memo.Lines.Add('  mov al, [ecx+'+IntToStr(kl)+']; cmp al, ''' + Keyword^ + '''; jne @Compare' + IntToHex(Hashes[x].Hash, 2) + '_' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len + 1));
                     Inc(kl);
                     Inc(Keyword);
                   end;
@@ -187,22 +230,8 @@ begin
                 Inc(len);
               end;
           end;
-      SearchForm.Memo.Lines.Add('end;');
-      SearchForm.Memo.Lines.Add('');
+        SearchForm.Memo.Lines.Add('');
     end;
-
-
-  SearchForm.Memo.Lines.Add('procedure InitKeywords;');
-  SearchForm.Memo.Lines.Add('var i: Byte;');
-  SearchForm.Memo.Lines.Add('begin');
-  SearchForm.Memo.Lines.Add('  for i := 0 to 255 do');
-  SearchForm.Memo.Lines.Add('    IdentifierJumpTable[i] := nil;');
-  SearchForm.Memo.Lines.Add('');
-
-  for x := 0 to High(Hashes) do
-      SearchForm.Memo.Lines.Add(' IdentifierJumpTable[$' + IntToHex(Hashes[x].Hash, 2) + '] := IdentifierHash' + IntToHex(Hashes[x].Hash, 2) + ';');
-
-  SearchForm.Memo.Lines.Add('end;');
 
   SearchForm.Show;
   HashExplorer.HashEx.Show;

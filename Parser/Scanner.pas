@@ -11,13 +11,13 @@ type
   
   TTokenInfo = record
     Token: TTokenType;
-    Start: PAnsiChar;
+    Hash: TParserHash;
     Stop: PAnsiChar;
+    Start: PAnsiChar;
     Document: PDocumentInfo;
     Line: Cardinal;
     LineStart: PAnsiChar;
     Error: Boolean;
-    Hash: TParserHash;
     function Length: Cardinal; inline;
     function StrNew: PAnsiChar;
   end;

@@ -23,7 +23,6 @@ type
     procedure Free;
   end;
 
-
   TType = object(TIdentifier)
     Extends: PIdentifier;
   end;

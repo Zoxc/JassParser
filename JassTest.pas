@@ -246,7 +246,7 @@ begin
   
   while ErrorInfo <> nil do
     begin
-      if i > 20 then
+      if i > 150 then
         begin
           ListBox.Items.Add('Too many errors, trimmed');
           ListBox.Items.EndUpdate;
@@ -329,10 +329,10 @@ begin
 
   New(Doc);
   Doc.Init;
-  {
-  while Token.Token <> ttEnd do
-    Scanner.Next;
-  }
+
+  //while Token.Token <> ttEnd do
+  //  Scanner.Next;
+
   ParseDocument(Doc^);
 
   Label1.Caption := 'Time: ' + GetTime + ' ms';

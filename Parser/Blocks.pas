@@ -19,7 +19,7 @@ var
 
 implementation
 
-uses Scanner, Tokens, Dialogs, Statements;
+uses Scanner, Tokens, Dialogs, Statements, Expressions;
 
 procedure ParseGlobal;
 var GlobalType: PType;
@@ -48,9 +48,7 @@ begin
     Include(Global.Flags, vfConstant);
 
   if Matches(ttEqual) then
-    begin
-    
-    end
+    Expression
   else if IsConstant then
     with TErrorInfo.Create(eiConstantNeedInit, GlobalInfo)^ do
       begin

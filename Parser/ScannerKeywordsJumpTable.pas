@@ -66,270 +66,266 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
 @CheckKeywords:
   jmp dword ptr [@JumpTable + eax * 4]
 
-@Empty:
+@Return:
   ret
 
-  // Align jumptable
-  nop
-  nop
-  
 @JumpTable:
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check05
  dd @Check06
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check0B
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check0F
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check13
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check18
- dd @Empty
+ dd @Return
  dd @Check1A
  dd @Check1B
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check1F
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check2C
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check33
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check3B
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check4C
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check51
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check58
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check5E
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check66
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check6A
- dd @Empty
+ dd @Return
  dd @Check6C
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check70
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check78
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check7F
- dd @Empty
+ dd @Return
  dd @Check81
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check87
  dd @Check88
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @Check9C
  dd @Check9D
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
  dd @CheckA0
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckA4
  dd @CheckA5
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckA9
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckAF
- dd @Empty
+ dd @Return
  dd @CheckB1
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckB8
- dd @Empty
+ dd @Return
  dd @CheckBA
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @CheckBB
+ dd @Return
+ dd @Return
  dd @CheckBE
- dd @Empty
+ dd @Return
  dd @CheckC0
- dd @Empty
+ dd @Return
  dd @CheckC2
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckCF
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckDC
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckE1
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
  dd @CheckE4
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckE8
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckF1
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
  dd @CheckF5
- dd @Empty
+ dd @Return
  dd @CheckF7
- dd @Empty
+ dd @Return
  dd @CheckF9
- dd @Empty
+ dd @Return
  dd @CheckFB
- dd @Empty
- dd @Empty
- dd @Empty
- dd @Empty
+ dd @Return
+ dd @Return
+ dd @Return
+ dd @Return
 
 @Check05:
   cmp edx, 5
@@ -397,10 +393,10 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Check51:
-  cmp edx, 6
-  je @Compare51_8_0
   cmp edx, 1
   je @Compare51_3_0
+  cmp edx, 6
+  je @Compare51_8_0
   ret
 
 @Check58:
@@ -508,6 +504,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   je @CompareBA_4_0
   ret
 
+@CheckBB:
+  cmp edx, 2
+  je @CompareBB_4_0
+  ret
+
 @CheckBE:
   cmp edx, 2
   je @CompareBE_4_0
@@ -577,16 +578,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare05_7_0:
+  // Match keyword
+  mov eax, dword ptr[ecx]; cmp eax, $7779656B; jne @Compare05_7_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $726F; jne @Compare05_7_1
+  mov al, byte ptr [ecx + 6]; cmp al, $64; jne @Compare05_7_1
 
-  mov al, [ecx+0]; cmp al, 'k'; jne @Compare05_7_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare05_7_1
-  mov al, [ecx+2]; cmp al, 'y'; jne @Compare05_7_1
-  mov al, [ecx+3]; cmp al, 'w'; jne @Compare05_7_1
-  mov al, [ecx+4]; cmp al, 'o'; jne @Compare05_7_1
-  mov al, [ecx+5]; cmp al, 'r'; jne @Compare05_7_1
-  mov al, [ecx+6]; cmp al, 'd'; jne @Compare05_7_1
-
-  mov [Token.Token], 67
+  mov [Token.Token], ttkeyword
   ret
 
  
@@ -594,29 +591,31 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare06_5_0:
+  // Match endif
+  mov eax, dword ptr[ecx]; cmp eax, $69646E65; jne @Compare06_5_1
+  mov al, byte ptr [ecx + 4]; cmp al, $66; jne @Compare06_5_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @Compare06_5_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @Compare06_5_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @Compare06_5_1
-  mov al, [ecx+3]; cmp al, 'i'; jne @Compare06_5_1
-  mov al, [ecx+4]; cmp al, 'f'; jne @Compare06_5_1
-
-  mov [Token.Token], 55
+  mov [Token.Token], ttendif
   ret
 
  
-@Compare0B_5_1:
+@Compare0B_5_2:
   ret
 
 @Compare0B_5_0:
+  // Match false
+  mov eax, dword ptr[ecx]; cmp eax, $736C6166; jne @Compare0B_5_1
+  mov al, byte ptr [ecx + 4]; cmp al, $65; jne @Compare0B_5_1
 
-  mov al, [ecx+0]; cmp al, 'l'; jne @Compare0B_5_1
-  mov al, [ecx+1]; cmp al, 'o'; jne @Compare0B_5_1
-  mov al, [ecx+2]; cmp al, 'c'; jne @Compare0B_5_1
-  mov al, [ecx+3]; cmp al, 'a'; jne @Compare0B_5_1
-  mov al, [ecx+4]; cmp al, 'l'; jne @Compare0B_5_1
+  mov [Token.Token], ttfalse
+  ret
 
-  mov [Token.Token], 53
+@Compare0B_5_1:
+  // Match local
+  mov eax, dword ptr[ecx]; cmp eax, $61636F6C; jne @Compare0B_5_2
+  mov al, byte ptr [ecx + 4]; cmp al, $6C; jne @Compare0B_5_2
+
+  mov [Token.Token], ttlocal
   ret
 
  
@@ -624,14 +623,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare0F_5_0:
+  // Match needs
+  mov eax, dword ptr[ecx]; cmp eax, $6465656E; jne @Compare0F_5_1
+  mov al, byte ptr [ecx + 4]; cmp al, $73; jne @Compare0F_5_1
 
-  mov al, [ecx+0]; cmp al, 'n'; jne @Compare0F_5_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare0F_5_1
-  mov al, [ecx+2]; cmp al, 'e'; jne @Compare0F_5_1
-  mov al, [ecx+3]; cmp al, 'd'; jne @Compare0F_5_1
-  mov al, [ecx+4]; cmp al, 's'; jne @Compare0F_5_1
-
-  mov [Token.Token], 34
+  mov [Token.Token], ttneeds
   ret
 
  
@@ -639,16 +635,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare13_7_0:
+  // Match returns
+  mov eax, dword ptr[ecx]; cmp eax, $75746572; jne @Compare13_7_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6E72; jne @Compare13_7_1
+  mov al, byte ptr [ecx + 6]; cmp al, $73; jne @Compare13_7_1
 
-  mov al, [ecx+0]; cmp al, 'r'; jne @Compare13_7_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare13_7_1
-  mov al, [ecx+2]; cmp al, 't'; jne @Compare13_7_1
-  mov al, [ecx+3]; cmp al, 'u'; jne @Compare13_7_1
-  mov al, [ecx+4]; cmp al, 'r'; jne @Compare13_7_1
-  mov al, [ecx+5]; cmp al, 'n'; jne @Compare13_7_1
-  mov al, [ecx+6]; cmp al, 's'; jne @Compare13_7_1
-
-  mov [Token.Token], 23
+  mov [Token.Token], ttreturns
   ret
 
  
@@ -656,14 +648,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare18_5_0:
+  // Match takes
+  mov eax, dword ptr[ecx]; cmp eax, $656B6174; jne @Compare18_5_1
+  mov al, byte ptr [ecx + 4]; cmp al, $73; jne @Compare18_5_1
 
-  mov al, [ecx+0]; cmp al, 't'; jne @Compare18_5_1
-  mov al, [ecx+1]; cmp al, 'a'; jne @Compare18_5_1
-  mov al, [ecx+2]; cmp al, 'k'; jne @Compare18_5_1
-  mov al, [ecx+3]; cmp al, 'e'; jne @Compare18_5_1
-  mov al, [ecx+4]; cmp al, 's'; jne @Compare18_5_1
-
-  mov [Token.Token], 22
+  mov [Token.Token], tttakes
   ret
 
  
@@ -671,14 +660,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare1A_5_0:
+  // Match scope
+  mov eax, dword ptr[ecx]; cmp eax, $706F6373; jne @Compare1A_5_1
+  mov al, byte ptr [ecx + 4]; cmp al, $65; jne @Compare1A_5_1
 
-  mov al, [ecx+0]; cmp al, 's'; jne @Compare1A_5_1
-  mov al, [ecx+1]; cmp al, 'c'; jne @Compare1A_5_1
-  mov al, [ecx+2]; cmp al, 'o'; jne @Compare1A_5_1
-  mov al, [ecx+3]; cmp al, 'p'; jne @Compare1A_5_1
-  mov al, [ecx+4]; cmp al, 'e'; jne @Compare1A_5_1
-
-  mov [Token.Token], 42
+  mov [Token.Token], ttscope
   ret
 
  
@@ -686,19 +672,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare1B_10_0:
+  // Match endglobals
+  mov eax, dword ptr[ecx]; cmp eax, $67646E65; jne @Compare1B_10_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $61626F6C; jne @Compare1B_10_1
+  movzx eax, word ptr [ecx + 8]; cmp eax, $736C; jne @Compare1B_10_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @Compare1B_10_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @Compare1B_10_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @Compare1B_10_1
-  mov al, [ecx+3]; cmp al, 'g'; jne @Compare1B_10_1
-  mov al, [ecx+4]; cmp al, 'l'; jne @Compare1B_10_1
-  mov al, [ecx+5]; cmp al, 'o'; jne @Compare1B_10_1
-  mov al, [ecx+6]; cmp al, 'b'; jne @Compare1B_10_1
-  mov al, [ecx+7]; cmp al, 'a'; jne @Compare1B_10_1
-  mov al, [ecx+8]; cmp al, 'l'; jne @Compare1B_10_1
-  mov al, [ecx+9]; cmp al, 's'; jne @Compare1B_10_1
-
-  mov [Token.Token], 19
+  mov [Token.Token], ttendglobals
   ret
 
  
@@ -706,14 +685,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare1F_5_0:
+  // Match array
+  mov eax, dword ptr[ecx]; cmp eax, $61727261; jne @Compare1F_5_1
+  mov al, byte ptr [ecx + 4]; cmp al, $79; jne @Compare1F_5_1
 
-  mov al, [ecx+0]; cmp al, 'a'; jne @Compare1F_5_1
-  mov al, [ecx+1]; cmp al, 'r'; jne @Compare1F_5_1
-  mov al, [ecx+2]; cmp al, 'r'; jne @Compare1F_5_1
-  mov al, [ecx+3]; cmp al, 'a'; jne @Compare1F_5_1
-  mov al, [ecx+4]; cmp al, 'y'; jne @Compare1F_5_1
-
-  mov [Token.Token], 29
+  mov [Token.Token], ttarray
   ret
 
  
@@ -721,19 +697,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare2C_10_0:
+  // Match endlibrary
+  mov eax, dword ptr[ecx]; cmp eax, $6C646E65; jne @Compare2C_10_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $61726269; jne @Compare2C_10_1
+  movzx eax, word ptr [ecx + 8]; cmp eax, $7972; jne @Compare2C_10_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @Compare2C_10_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @Compare2C_10_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @Compare2C_10_1
-  mov al, [ecx+3]; cmp al, 'l'; jne @Compare2C_10_1
-  mov al, [ecx+4]; cmp al, 'i'; jne @Compare2C_10_1
-  mov al, [ecx+5]; cmp al, 'b'; jne @Compare2C_10_1
-  mov al, [ecx+6]; cmp al, 'r'; jne @Compare2C_10_1
-  mov al, [ecx+7]; cmp al, 'a'; jne @Compare2C_10_1
-  mov al, [ecx+8]; cmp al, 'r'; jne @Compare2C_10_1
-  mov al, [ecx+9]; cmp al, 'y'; jne @Compare2C_10_1
-
-  mov [Token.Token], 32
+  mov [Token.Token], ttendlibrary
   ret
 
  
@@ -741,12 +710,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare33_3_0:
+  // Match and
+  movzx eax, word ptr [ecx]; cmp eax, $6E61; jne @Compare33_3_1
+  mov al, byte ptr [ecx + 2]; cmp al, $64; jne @Compare33_3_1
 
-  mov al, [ecx+0]; cmp al, 'a'; jne @Compare33_3_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @Compare33_3_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @Compare33_3_1
-
-  mov [Token.Token], 39
+  mov [Token.Token], ttand
   ret
 
  
@@ -754,17 +722,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare3B_8_0:
+  // Match delegate
+  mov eax, dword ptr[ecx]; cmp eax, $656C6564; jne @Compare3B_8_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $65746167; jne @Compare3B_8_1
 
-  mov al, [ecx+0]; cmp al, 'd'; jne @Compare3B_8_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare3B_8_1
-  mov al, [ecx+2]; cmp al, 'l'; jne @Compare3B_8_1
-  mov al, [ecx+3]; cmp al, 'e'; jne @Compare3B_8_1
-  mov al, [ecx+4]; cmp al, 'g'; jne @Compare3B_8_1
-  mov al, [ecx+5]; cmp al, 'a'; jne @Compare3B_8_1
-  mov al, [ecx+6]; cmp al, 't'; jne @Compare3B_8_1
-  mov al, [ecx+7]; cmp al, 'e'; jne @Compare3B_8_1
-
-  mov [Token.Token], 66
+  mov [Token.Token], ttdelegate
   ret
 
  
@@ -772,40 +734,32 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare4C_3_0:
+  // Match set
+  movzx eax, word ptr [ecx]; cmp eax, $6573; jne @Compare4C_3_1
+  mov al, byte ptr [ecx + 2]; cmp al, $74; jne @Compare4C_3_1
 
-  mov al, [ecx+0]; cmp al, 's'; jne @Compare4C_3_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare4C_3_1
-  mov al, [ecx+2]; cmp al, 't'; jne @Compare4C_3_1
-
-  mov [Token.Token], 37
+  mov [Token.Token], ttset
   ret
 
  
-@Compare51_8_1:
 @Compare51_3_1:
-  ret
-
-@Compare51_8_0:
-
-  mov al, [ecx+0]; cmp al, 'e'; jne @Compare51_8_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @Compare51_8_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @Compare51_8_1
-  mov al, [ecx+3]; cmp al, 's'; jne @Compare51_8_1
-  mov al, [ecx+4]; cmp al, 'c'; jne @Compare51_8_1
-  mov al, [ecx+5]; cmp al, 'o'; jne @Compare51_8_1
-  mov al, [ecx+6]; cmp al, 'p'; jne @Compare51_8_1
-  mov al, [ecx+7]; cmp al, 'e'; jne @Compare51_8_1
-
-  mov [Token.Token], 43
+@Compare51_8_1:
   ret
 
 @Compare51_3_0:
+  // Match not
+  movzx eax, word ptr [ecx]; cmp eax, $6F6E; jne @Compare51_3_1
+  mov al, byte ptr [ecx + 2]; cmp al, $74; jne @Compare51_3_1
 
-  mov al, [ecx+0]; cmp al, 'n'; jne @Compare51_3_1
-  mov al, [ecx+1]; cmp al, 'o'; jne @Compare51_3_1
-  mov al, [ecx+2]; cmp al, 't'; jne @Compare51_3_1
+  mov [Token.Token], ttnot
+  ret
 
-  mov [Token.Token], 40
+@Compare51_8_0:
+  // Match endscope
+  mov eax, dword ptr[ecx]; cmp eax, $73646E65; jne @Compare51_8_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $65706F63; jne @Compare51_8_1
+
+  mov [Token.Token], ttendscope
   ret
 
  
@@ -813,17 +767,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare58_8_0:
+  // Match defaults
+  mov eax, dword ptr[ecx]; cmp eax, $61666564; jne @Compare58_8_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $73746C75; jne @Compare58_8_1
 
-  mov al, [ecx+0]; cmp al, 'd'; jne @Compare58_8_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare58_8_1
-  mov al, [ecx+2]; cmp al, 'f'; jne @Compare58_8_1
-  mov al, [ecx+3]; cmp al, 'a'; jne @Compare58_8_1
-  mov al, [ecx+4]; cmp al, 'u'; jne @Compare58_8_1
-  mov al, [ecx+5]; cmp al, 'l'; jne @Compare58_8_1
-  mov al, [ecx+6]; cmp al, 't'; jne @Compare58_8_1
-  mov al, [ecx+7]; cmp al, 's'; jne @Compare58_8_1
-
-  mov [Token.Token], 46
+  mov [Token.Token], ttdefaults
   ret
 
  
@@ -831,17 +779,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare5E_8_0:
+  // Match readonly
+  mov eax, dword ptr[ecx]; cmp eax, $64616572; jne @Compare5E_8_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $796C6E6F; jne @Compare5E_8_1
 
-  mov al, [ecx+0]; cmp al, 'r'; jne @Compare5E_8_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare5E_8_1
-  mov al, [ecx+2]; cmp al, 'a'; jne @Compare5E_8_1
-  mov al, [ecx+3]; cmp al, 'd'; jne @Compare5E_8_1
-  mov al, [ecx+4]; cmp al, 'o'; jne @Compare5E_8_1
-  mov al, [ecx+5]; cmp al, 'n'; jne @Compare5E_8_1
-  mov al, [ecx+6]; cmp al, 'l'; jne @Compare5E_8_1
-  mov al, [ecx+7]; cmp al, 'y'; jne @Compare5E_8_1
-
-  mov [Token.Token], 68
+  mov [Token.Token], ttreadonly
   ret
 
  
@@ -849,17 +791,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare66_8_0:
+  // Match function
+  mov eax, dword ptr[ecx]; cmp eax, $636E7566; jne @Compare66_8_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $6E6F6974; jne @Compare66_8_1
 
-  mov al, [ecx+0]; cmp al, 'f'; jne @Compare66_8_1
-  mov al, [ecx+1]; cmp al, 'u'; jne @Compare66_8_1
-  mov al, [ecx+2]; cmp al, 'n'; jne @Compare66_8_1
-  mov al, [ecx+3]; cmp al, 'c'; jne @Compare66_8_1
-  mov al, [ecx+4]; cmp al, 't'; jne @Compare66_8_1
-  mov al, [ecx+5]; cmp al, 'i'; jne @Compare66_8_1
-  mov al, [ecx+6]; cmp al, 'o'; jne @Compare66_8_1
-  mov al, [ecx+7]; cmp al, 'n'; jne @Compare66_8_1
-
-  mov [Token.Token], 20
+  mov [Token.Token], ttfunction
   ret
 
  
@@ -867,17 +803,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare6A_8_0:
+  // Match constant
+  mov eax, dword ptr[ecx]; cmp eax, $736E6F63; jne @Compare6A_8_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $746E6174; jne @Compare6A_8_1
 
-  mov al, [ecx+0]; cmp al, 'c'; jne @Compare6A_8_1
-  mov al, [ecx+1]; cmp al, 'o'; jne @Compare6A_8_1
-  mov al, [ecx+2]; cmp al, 'n'; jne @Compare6A_8_1
-  mov al, [ecx+3]; cmp al, 's'; jne @Compare6A_8_1
-  mov al, [ecx+4]; cmp al, 't'; jne @Compare6A_8_1
-  mov al, [ecx+5]; cmp al, 'a'; jne @Compare6A_8_1
-  mov al, [ecx+6]; cmp al, 'n'; jne @Compare6A_8_1
-  mov al, [ecx+7]; cmp al, 't'; jne @Compare6A_8_1
-
-  mov [Token.Token], 25
+  mov [Token.Token], ttconstant
   ret
 
  
@@ -885,31 +815,19 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare6C_8_0:
+  // Match exitwhen
+  mov eax, dword ptr[ecx]; cmp eax, $74697865; jne @Compare6C_8_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $6E656877; jne @Compare6C_8_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @Compare6C_8_1
-  mov al, [ecx+1]; cmp al, 'x'; jne @Compare6C_8_1
-  mov al, [ecx+2]; cmp al, 'i'; jne @Compare6C_8_1
-  mov al, [ecx+3]; cmp al, 't'; jne @Compare6C_8_1
-  mov al, [ecx+4]; cmp al, 'w'; jne @Compare6C_8_1
-  mov al, [ecx+5]; cmp al, 'h'; jne @Compare6C_8_1
-  mov al, [ecx+6]; cmp al, 'e'; jne @Compare6C_8_1
-  mov al, [ecx+7]; cmp al, 'n'; jne @Compare6C_8_1
-
-  mov [Token.Token], 61
+  mov [Token.Token], ttexitwhen
   ret
 
 @Compare6C_8_1:
+  // Match operator
+  mov eax, dword ptr[ecx]; cmp eax, $7265706F; jne @Compare6C_8_2
+  mov eax, dword ptr[ecx + 4]; cmp eax, $726F7461; jne @Compare6C_8_2
 
-  mov al, [ecx+0]; cmp al, 'o'; jne @Compare6C_8_2
-  mov al, [ecx+1]; cmp al, 'p'; jne @Compare6C_8_2
-  mov al, [ecx+2]; cmp al, 'e'; jne @Compare6C_8_2
-  mov al, [ecx+3]; cmp al, 'r'; jne @Compare6C_8_2
-  mov al, [ecx+4]; cmp al, 'a'; jne @Compare6C_8_2
-  mov al, [ecx+5]; cmp al, 't'; jne @Compare6C_8_2
-  mov al, [ecx+6]; cmp al, 'o'; jne @Compare6C_8_2
-  mov al, [ecx+7]; cmp al, 'r'; jne @Compare6C_8_2
-
-  mov [Token.Token], 51
+  mov [Token.Token], ttoperator
   ret
 
  
@@ -917,17 +835,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare70_8_0:
+  // Match requires
+  mov eax, dword ptr[ecx]; cmp eax, $75716572; jne @Compare70_8_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $73657269; jne @Compare70_8_1
 
-  mov al, [ecx+0]; cmp al, 'r'; jne @Compare70_8_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare70_8_1
-  mov al, [ecx+2]; cmp al, 'q'; jne @Compare70_8_1
-  mov al, [ecx+3]; cmp al, 'u'; jne @Compare70_8_1
-  mov al, [ecx+4]; cmp al, 'i'; jne @Compare70_8_1
-  mov al, [ecx+5]; cmp al, 'r'; jne @Compare70_8_1
-  mov al, [ecx+6]; cmp al, 'e'; jne @Compare70_8_1
-  mov al, [ecx+7]; cmp al, 's'; jne @Compare70_8_1
-
-  mov [Token.Token], 33
+  mov [Token.Token], ttrequires
   ret
 
  
@@ -935,15 +847,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare78_6_0:
+  // Match elseif
+  mov eax, dword ptr[ecx]; cmp eax, $65736C65; jne @Compare78_6_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6669; jne @Compare78_6_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @Compare78_6_1
-  mov al, [ecx+1]; cmp al, 'l'; jne @Compare78_6_1
-  mov al, [ecx+2]; cmp al, 's'; jne @Compare78_6_1
-  mov al, [ecx+3]; cmp al, 'e'; jne @Compare78_6_1
-  mov al, [ecx+4]; cmp al, 'i'; jne @Compare78_6_1
-  mov al, [ecx+5]; cmp al, 'f'; jne @Compare78_6_1
-
-  mov [Token.Token], 58
+  mov [Token.Token], ttelseif
   ret
 
  
@@ -951,15 +859,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare7F_6_0:
+  // Match public
+  mov eax, dword ptr[ecx]; cmp eax, $6C627570; jne @Compare7F_6_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6369; jne @Compare7F_6_1
 
-  mov al, [ecx+0]; cmp al, 'p'; jne @Compare7F_6_1
-  mov al, [ecx+1]; cmp al, 'u'; jne @Compare7F_6_1
-  mov al, [ecx+2]; cmp al, 'b'; jne @Compare7F_6_1
-  mov al, [ecx+3]; cmp al, 'l'; jne @Compare7F_6_1
-  mov al, [ecx+4]; cmp al, 'i'; jne @Compare7F_6_1
-  mov al, [ecx+5]; cmp al, 'c'; jne @Compare7F_6_1
-
-  mov [Token.Token], 63
+  mov [Token.Token], ttpublic
   ret
 
  
@@ -967,15 +871,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare81_6_0:
+  // Match method
+  mov eax, dword ptr[ecx]; cmp eax, $6874656D; jne @Compare81_6_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $646F; jne @Compare81_6_1
 
-  mov al, [ecx+0]; cmp al, 'm'; jne @Compare81_6_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @Compare81_6_1
-  mov al, [ecx+2]; cmp al, 't'; jne @Compare81_6_1
-  mov al, [ecx+3]; cmp al, 'h'; jne @Compare81_6_1
-  mov al, [ecx+4]; cmp al, 'o'; jne @Compare81_6_1
-  mov al, [ecx+5]; cmp al, 'd'; jne @Compare81_6_1
-
-  mov [Token.Token], 49
+  mov [Token.Token], ttmethod
   ret
 
  
@@ -983,15 +883,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare87_6_0:
+  // Match native
+  mov eax, dword ptr[ecx]; cmp eax, $6974616E; jne @Compare87_6_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6576; jne @Compare87_6_1
 
-  mov al, [ecx+0]; cmp al, 'n'; jne @Compare87_6_1
-  mov al, [ecx+1]; cmp al, 'a'; jne @Compare87_6_1
-  mov al, [ecx+2]; cmp al, 't'; jne @Compare87_6_1
-  mov al, [ecx+3]; cmp al, 'i'; jne @Compare87_6_1
-  mov al, [ecx+4]; cmp al, 'v'; jne @Compare87_6_1
-  mov al, [ecx+5]; cmp al, 'e'; jne @Compare87_6_1
-
-  mov [Token.Token], 26
+  mov [Token.Token], ttnative
   ret
 
  
@@ -999,15 +895,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare88_6_0:
+  // Match static
+  mov eax, dword ptr[ecx]; cmp eax, $74617473; jne @Compare88_6_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6369; jne @Compare88_6_1
 
-  mov al, [ecx+0]; cmp al, 's'; jne @Compare88_6_1
-  mov al, [ecx+1]; cmp al, 't'; jne @Compare88_6_1
-  mov al, [ecx+2]; cmp al, 'a'; jne @Compare88_6_1
-  mov al, [ecx+3]; cmp al, 't'; jne @Compare88_6_1
-  mov al, [ecx+4]; cmp al, 'i'; jne @Compare88_6_1
-  mov al, [ecx+5]; cmp al, 'c'; jne @Compare88_6_1
-
-  mov [Token.Token], 65
+  mov [Token.Token], ttstatic
   ret
 
  
@@ -1015,13 +907,10 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare9C_4_0:
+  // Match call
+  mov eax, dword ptr[ecx]; cmp eax, $6C6C6163; jne @Compare9C_4_1
 
-  mov al, [ecx+0]; cmp al, 'c'; jne @Compare9C_4_1
-  mov al, [ecx+1]; cmp al, 'a'; jne @Compare9C_4_1
-  mov al, [ecx+2]; cmp al, 'l'; jne @Compare9C_4_1
-  mov al, [ecx+3]; cmp al, 'l'; jne @Compare9C_4_1
-
-  mov [Token.Token], 38
+  mov [Token.Token], ttcall
   ret
 
  
@@ -1029,20 +918,13 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @Compare9D_11_0:
+  // Match endfunction
+  mov eax, dword ptr[ecx]; cmp eax, $66646E65; jne @Compare9D_11_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $74636E75; jne @Compare9D_11_1
+  movzx eax, word ptr [ecx + 8]; cmp eax, $6F69; jne @Compare9D_11_1
+  mov al, byte ptr [ecx + 10]; cmp al, $6E; jne @Compare9D_11_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @Compare9D_11_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @Compare9D_11_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @Compare9D_11_1
-  mov al, [ecx+3]; cmp al, 'f'; jne @Compare9D_11_1
-  mov al, [ecx+4]; cmp al, 'u'; jne @Compare9D_11_1
-  mov al, [ecx+5]; cmp al, 'n'; jne @Compare9D_11_1
-  mov al, [ecx+6]; cmp al, 'c'; jne @Compare9D_11_1
-  mov al, [ecx+7]; cmp al, 't'; jne @Compare9D_11_1
-  mov al, [ecx+8]; cmp al, 'i'; jne @Compare9D_11_1
-  mov al, [ecx+9]; cmp al, 'o'; jne @Compare9D_11_1
-  mov al, [ecx+10]; cmp al, 'n'; jne @Compare9D_11_1
-
-  mov [Token.Token], 21
+  mov [Token.Token], ttendfunction
   ret
 
  
@@ -1050,15 +932,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareA0_6_0:
+  // Match return
+  mov eax, dword ptr[ecx]; cmp eax, $75746572; jne @CompareA0_6_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6E72; jne @CompareA0_6_1
 
-  mov al, [ecx+0]; cmp al, 'r'; jne @CompareA0_6_1
-  mov al, [ecx+1]; cmp al, 'e'; jne @CompareA0_6_1
-  mov al, [ecx+2]; cmp al, 't'; jne @CompareA0_6_1
-  mov al, [ecx+3]; cmp al, 'u'; jne @CompareA0_6_1
-  mov al, [ecx+4]; cmp al, 'r'; jne @CompareA0_6_1
-  mov al, [ecx+5]; cmp al, 'n'; jne @CompareA0_6_1
-
-  mov [Token.Token], 52
+  mov [Token.Token], ttreturn
   ret
 
  
@@ -1066,20 +944,13 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareA4_11_0:
+  // Match initializer
+  mov eax, dword ptr[ecx]; cmp eax, $74696E69; jne @CompareA4_11_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $696C6169; jne @CompareA4_11_1
+  movzx eax, word ptr [ecx + 8]; cmp eax, $657A; jne @CompareA4_11_1
+  mov al, byte ptr [ecx + 10]; cmp al, $72; jne @CompareA4_11_1
 
-  mov al, [ecx+0]; cmp al, 'i'; jne @CompareA4_11_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @CompareA4_11_1
-  mov al, [ecx+2]; cmp al, 'i'; jne @CompareA4_11_1
-  mov al, [ecx+3]; cmp al, 't'; jne @CompareA4_11_1
-  mov al, [ecx+4]; cmp al, 'i'; jne @CompareA4_11_1
-  mov al, [ecx+5]; cmp al, 'a'; jne @CompareA4_11_1
-  mov al, [ecx+6]; cmp al, 'l'; jne @CompareA4_11_1
-  mov al, [ecx+7]; cmp al, 'i'; jne @CompareA4_11_1
-  mov al, [ecx+8]; cmp al, 'z'; jne @CompareA4_11_1
-  mov al, [ecx+9]; cmp al, 'e'; jne @CompareA4_11_1
-  mov al, [ecx+10]; cmp al, 'r'; jne @CompareA4_11_1
-
-  mov [Token.Token], 36
+  mov [Token.Token], ttinitializer
   ret
 
  
@@ -1087,15 +958,11 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareA5_6_0:
+  // Match struct
+  mov eax, dword ptr[ecx]; cmp eax, $75727473; jne @CompareA5_6_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $7463; jne @CompareA5_6_1
 
-  mov al, [ecx+0]; cmp al, 's'; jne @CompareA5_6_1
-  mov al, [ecx+1]; cmp al, 't'; jne @CompareA5_6_1
-  mov al, [ecx+2]; cmp al, 'r'; jne @CompareA5_6_1
-  mov al, [ecx+3]; cmp al, 'u'; jne @CompareA5_6_1
-  mov al, [ecx+4]; cmp al, 'c'; jne @CompareA5_6_1
-  mov al, [ecx+5]; cmp al, 't'; jne @CompareA5_6_1
-
-  mov [Token.Token], 47
+  mov [Token.Token], ttstruct
   ret
 
  
@@ -1103,13 +970,10 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareA9_4_0:
+  // Match else
+  mov eax, dword ptr[ecx]; cmp eax, $65736C65; jne @CompareA9_4_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @CompareA9_4_1
-  mov al, [ecx+1]; cmp al, 'l'; jne @CompareA9_4_1
-  mov al, [ecx+2]; cmp al, 's'; jne @CompareA9_4_1
-  mov al, [ecx+3]; cmp al, 'e'; jne @CompareA9_4_1
-
-  mov [Token.Token], 57
+  mov [Token.Token], ttelse
   ret
 
  
@@ -1117,13 +981,10 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareAF_4_0:
+  // Match then
+  mov eax, dword ptr[ecx]; cmp eax, $6E656874; jne @CompareAF_4_1
 
-  mov al, [ecx+0]; cmp al, 't'; jne @CompareAF_4_1
-  mov al, [ecx+1]; cmp al, 'h'; jne @CompareAF_4_1
-  mov al, [ecx+2]; cmp al, 'e'; jne @CompareAF_4_1
-  mov al, [ecx+3]; cmp al, 'n'; jne @CompareAF_4_1
-
-  mov [Token.Token], 56
+  mov [Token.Token], ttthen
   ret
 
  
@@ -1131,18 +992,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareB1_9_0:
+  // Match interface
+  mov eax, dword ptr[ecx]; cmp eax, $65746E69; jne @CompareB1_9_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $63616672; jne @CompareB1_9_1
+  mov al, byte ptr [ecx + 8]; cmp al, $65; jne @CompareB1_9_1
 
-  mov al, [ecx+0]; cmp al, 'i'; jne @CompareB1_9_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @CompareB1_9_1
-  mov al, [ecx+2]; cmp al, 't'; jne @CompareB1_9_1
-  mov al, [ecx+3]; cmp al, 'e'; jne @CompareB1_9_1
-  mov al, [ecx+4]; cmp al, 'r'; jne @CompareB1_9_1
-  mov al, [ecx+5]; cmp al, 'f'; jne @CompareB1_9_1
-  mov al, [ecx+6]; cmp al, 'a'; jne @CompareB1_9_1
-  mov al, [ecx+7]; cmp al, 'c'; jne @CompareB1_9_1
-  mov al, [ecx+8]; cmp al, 'e'; jne @CompareB1_9_1
-
-  mov [Token.Token], 44
+  mov [Token.Token], ttinterface
   ret
 
  
@@ -1150,18 +1005,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareB8_9_0:
+  // Match endmethod
+  mov eax, dword ptr[ecx]; cmp eax, $6D646E65; jne @CompareB8_9_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $6F687465; jne @CompareB8_9_1
+  mov al, byte ptr [ecx + 8]; cmp al, $64; jne @CompareB8_9_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @CompareB8_9_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @CompareB8_9_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @CompareB8_9_1
-  mov al, [ecx+3]; cmp al, 'm'; jne @CompareB8_9_1
-  mov al, [ecx+4]; cmp al, 'e'; jne @CompareB8_9_1
-  mov al, [ecx+5]; cmp al, 't'; jne @CompareB8_9_1
-  mov al, [ecx+6]; cmp al, 'h'; jne @CompareB8_9_1
-  mov al, [ecx+7]; cmp al, 'o'; jne @CompareB8_9_1
-  mov al, [ecx+8]; cmp al, 'd'; jne @CompareB8_9_1
-
-  mov [Token.Token], 50
+  mov [Token.Token], ttendmethod
   ret
 
  
@@ -1169,13 +1018,21 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareBA_4_0:
+  // Match loop
+  mov eax, dword ptr[ecx]; cmp eax, $706F6F6C; jne @CompareBA_4_1
 
-  mov al, [ecx+0]; cmp al, 'l'; jne @CompareBA_4_1
-  mov al, [ecx+1]; cmp al, 'o'; jne @CompareBA_4_1
-  mov al, [ecx+2]; cmp al, 'o'; jne @CompareBA_4_1
-  mov al, [ecx+3]; cmp al, 'p'; jne @CompareBA_4_1
+  mov [Token.Token], ttloop
+  ret
 
-  mov [Token.Token], 59
+ 
+@CompareBB_4_1:
+  ret
+
+@CompareBB_4_0:
+  // Match null
+  mov eax, dword ptr[ecx]; cmp eax, $6C6C756E; jne @CompareBB_4_1
+
+  mov [Token.Token], ttnull
   ret
 
  
@@ -1183,27 +1040,28 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareBE_4_0:
+  // Match stub
+  mov eax, dword ptr[ecx]; cmp eax, $62757473; jne @CompareBE_4_1
 
-  mov al, [ecx+0]; cmp al, 's'; jne @CompareBE_4_1
-  mov al, [ecx+1]; cmp al, 't'; jne @CompareBE_4_1
-  mov al, [ecx+2]; cmp al, 'u'; jne @CompareBE_4_1
-  mov al, [ecx+3]; cmp al, 'b'; jne @CompareBE_4_1
-
-  mov [Token.Token], 64
+  mov [Token.Token], ttstub
   ret
 
  
-@CompareC0_4_1:
+@CompareC0_4_2:
   ret
 
 @CompareC0_4_0:
+  // Match uses
+  mov eax, dword ptr[ecx]; cmp eax, $73657375; jne @CompareC0_4_1
 
-  mov al, [ecx+0]; cmp al, 'u'; jne @CompareC0_4_1
-  mov al, [ecx+1]; cmp al, 's'; jne @CompareC0_4_1
-  mov al, [ecx+2]; cmp al, 'e'; jne @CompareC0_4_1
-  mov al, [ecx+3]; cmp al, 's'; jne @CompareC0_4_1
+  mov [Token.Token], ttuses
+  ret
 
-  mov [Token.Token], 35
+@CompareC0_4_1:
+  // Match true
+  mov eax, dword ptr[ecx]; cmp eax, $65757274; jne @CompareC0_4_2
+
+  mov [Token.Token], tttrue
   ret
 
  
@@ -1211,13 +1069,10 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareC2_4_0:
+  // Match type
+  mov eax, dword ptr[ecx]; cmp eax, $65707974; jne @CompareC2_4_1
 
-  mov al, [ecx+0]; cmp al, 't'; jne @CompareC2_4_1
-  mov al, [ecx+1]; cmp al, 'y'; jne @CompareC2_4_1
-  mov al, [ecx+2]; cmp al, 'p'; jne @CompareC2_4_1
-  mov al, [ecx+3]; cmp al, 'e'; jne @CompareC2_4_1
-
-  mov [Token.Token], 27
+  mov [Token.Token], tttype
   ret
 
  
@@ -1225,11 +1080,10 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareCF_2_0:
+  // Match if
+  movzx eax, word ptr [ecx]; cmp eax, $6669; jne @CompareCF_2_1
 
-  mov al, [ecx+0]; cmp al, 'i'; jne @CompareCF_2_1
-  mov al, [ecx+1]; cmp al, 'f'; jne @CompareCF_2_1
-
-  mov [Token.Token], 54
+  mov [Token.Token], ttif
   ret
 
  
@@ -1237,18 +1091,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareDC_9_0:
+  // Match endstruct
+  mov eax, dword ptr[ecx]; cmp eax, $73646E65; jne @CompareDC_9_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $63757274; jne @CompareDC_9_1
+  mov al, byte ptr [ecx + 8]; cmp al, $74; jne @CompareDC_9_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @CompareDC_9_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @CompareDC_9_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @CompareDC_9_1
-  mov al, [ecx+3]; cmp al, 's'; jne @CompareDC_9_1
-  mov al, [ecx+4]; cmp al, 't'; jne @CompareDC_9_1
-  mov al, [ecx+5]; cmp al, 'r'; jne @CompareDC_9_1
-  mov al, [ecx+6]; cmp al, 'u'; jne @CompareDC_9_1
-  mov al, [ecx+7]; cmp al, 'c'; jne @CompareDC_9_1
-  mov al, [ecx+8]; cmp al, 't'; jne @CompareDC_9_1
-
-  mov [Token.Token], 48
+  mov [Token.Token], ttendstruct
   ret
 
  
@@ -1256,11 +1104,10 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareE1_2_0:
+  // Match or
+  movzx eax, word ptr [ecx]; cmp eax, $726F; jne @CompareE1_2_1
 
-  mov al, [ecx+0]; cmp al, 'o'; jne @CompareE1_2_1
-  mov al, [ecx+1]; cmp al, 'r'; jne @CompareE1_2_1
-
-  mov [Token.Token], 41
+  mov [Token.Token], ttor
   ret
 
  
@@ -1268,16 +1115,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareE4_7_0:
+  // Match globals
+  mov eax, dword ptr[ecx]; cmp eax, $626F6C67; jne @CompareE4_7_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6C61; jne @CompareE4_7_1
+  mov al, byte ptr [ecx + 6]; cmp al, $73; jne @CompareE4_7_1
 
-  mov al, [ecx+0]; cmp al, 'g'; jne @CompareE4_7_1
-  mov al, [ecx+1]; cmp al, 'l'; jne @CompareE4_7_1
-  mov al, [ecx+2]; cmp al, 'o'; jne @CompareE4_7_1
-  mov al, [ecx+3]; cmp al, 'b'; jne @CompareE4_7_1
-  mov al, [ecx+4]; cmp al, 'a'; jne @CompareE4_7_1
-  mov al, [ecx+5]; cmp al, 'l'; jne @CompareE4_7_1
-  mov al, [ecx+6]; cmp al, 's'; jne @CompareE4_7_1
-
-  mov [Token.Token], 18
+  mov [Token.Token], ttglobals
   ret
 
  
@@ -1285,21 +1128,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareE8_12_0:
+  // Match endinterface
+  mov eax, dword ptr[ecx]; cmp eax, $69646E65; jne @CompareE8_12_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $7265746E; jne @CompareE8_12_1
+  mov eax, dword ptr[ecx + 8]; cmp eax, $65636166; jne @CompareE8_12_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @CompareE8_12_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @CompareE8_12_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @CompareE8_12_1
-  mov al, [ecx+3]; cmp al, 'i'; jne @CompareE8_12_1
-  mov al, [ecx+4]; cmp al, 'n'; jne @CompareE8_12_1
-  mov al, [ecx+5]; cmp al, 't'; jne @CompareE8_12_1
-  mov al, [ecx+6]; cmp al, 'e'; jne @CompareE8_12_1
-  mov al, [ecx+7]; cmp al, 'r'; jne @CompareE8_12_1
-  mov al, [ecx+8]; cmp al, 'f'; jne @CompareE8_12_1
-  mov al, [ecx+9]; cmp al, 'a'; jne @CompareE8_12_1
-  mov al, [ecx+10]; cmp al, 'c'; jne @CompareE8_12_1
-  mov al, [ecx+11]; cmp al, 'e'; jne @CompareE8_12_1
-
-  mov [Token.Token], 45
+  mov [Token.Token], ttendinterface
   ret
 
  
@@ -1307,16 +1141,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareF1_7_0:
+  // Match endloop
+  mov eax, dword ptr[ecx]; cmp eax, $6C646E65; jne @CompareF1_7_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6F6F; jne @CompareF1_7_1
+  mov al, byte ptr [ecx + 6]; cmp al, $70; jne @CompareF1_7_1
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @CompareF1_7_1
-  mov al, [ecx+1]; cmp al, 'n'; jne @CompareF1_7_1
-  mov al, [ecx+2]; cmp al, 'd'; jne @CompareF1_7_1
-  mov al, [ecx+3]; cmp al, 'l'; jne @CompareF1_7_1
-  mov al, [ecx+4]; cmp al, 'o'; jne @CompareF1_7_1
-  mov al, [ecx+5]; cmp al, 'o'; jne @CompareF1_7_1
-  mov al, [ecx+6]; cmp al, 'p'; jne @CompareF1_7_1
-
-  mov [Token.Token], 60
+  mov [Token.Token], ttendloop
   ret
 
  
@@ -1324,16 +1154,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareF5_7_0:
+  // Match library
+  mov eax, dword ptr[ecx]; cmp eax, $7262696C; jne @CompareF5_7_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $7261; jne @CompareF5_7_1
+  mov al, byte ptr [ecx + 6]; cmp al, $79; jne @CompareF5_7_1
 
-  mov al, [ecx+0]; cmp al, 'l'; jne @CompareF5_7_1
-  mov al, [ecx+1]; cmp al, 'i'; jne @CompareF5_7_1
-  mov al, [ecx+2]; cmp al, 'b'; jne @CompareF5_7_1
-  mov al, [ecx+3]; cmp al, 'r'; jne @CompareF5_7_1
-  mov al, [ecx+4]; cmp al, 'a'; jne @CompareF5_7_1
-  mov al, [ecx+5]; cmp al, 'r'; jne @CompareF5_7_1
-  mov al, [ecx+6]; cmp al, 'y'; jne @CompareF5_7_1
-
-  mov [Token.Token], 30
+  mov [Token.Token], ttlibrary
   ret
 
  
@@ -1341,16 +1167,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareF7_7_0:
+  // Match nothing
+  mov eax, dword ptr[ecx]; cmp eax, $68746F6E; jne @CompareF7_7_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $6E69; jne @CompareF7_7_1
+  mov al, byte ptr [ecx + 6]; cmp al, $67; jne @CompareF7_7_1
 
-  mov al, [ecx+0]; cmp al, 'n'; jne @CompareF7_7_1
-  mov al, [ecx+1]; cmp al, 'o'; jne @CompareF7_7_1
-  mov al, [ecx+2]; cmp al, 't'; jne @CompareF7_7_1
-  mov al, [ecx+3]; cmp al, 'h'; jne @CompareF7_7_1
-  mov al, [ecx+4]; cmp al, 'i'; jne @CompareF7_7_1
-  mov al, [ecx+5]; cmp al, 'n'; jne @CompareF7_7_1
-  mov al, [ecx+6]; cmp al, 'g'; jne @CompareF7_7_1
-
-  mov [Token.Token], 24
+  mov [Token.Token], ttnothing
   ret
 
  
@@ -1358,21 +1180,12 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareF9_12_0:
+  // Match library_once
+  mov eax, dword ptr[ecx]; cmp eax, $7262696C; jne @CompareF9_12_1
+  mov eax, dword ptr[ecx + 4]; cmp eax, $5F797261; jne @CompareF9_12_1
+  mov eax, dword ptr[ecx + 8]; cmp eax, $65636E6F; jne @CompareF9_12_1
 
-  mov al, [ecx+0]; cmp al, 'l'; jne @CompareF9_12_1
-  mov al, [ecx+1]; cmp al, 'i'; jne @CompareF9_12_1
-  mov al, [ecx+2]; cmp al, 'b'; jne @CompareF9_12_1
-  mov al, [ecx+3]; cmp al, 'r'; jne @CompareF9_12_1
-  mov al, [ecx+4]; cmp al, 'a'; jne @CompareF9_12_1
-  mov al, [ecx+5]; cmp al, 'r'; jne @CompareF9_12_1
-  mov al, [ecx+6]; cmp al, 'y'; jne @CompareF9_12_1
-  mov al, [ecx+7]; cmp al, '_'; jne @CompareF9_12_1
-  mov al, [ecx+8]; cmp al, 'o'; jne @CompareF9_12_1
-  mov al, [ecx+9]; cmp al, 'n'; jne @CompareF9_12_1
-  mov al, [ecx+10]; cmp al, 'c'; jne @CompareF9_12_1
-  mov al, [ecx+11]; cmp al, 'e'; jne @CompareF9_12_1
-
-  mov [Token.Token], 31
+  mov [Token.Token], ttlibrary_once
   ret
 
  
@@ -1380,30 +1193,24 @@ asm // Hash in al. Input in cl. Input Pointer in edx. Input Start on stack.
   ret
 
 @CompareFB_7_0:
+  // Match private
+  mov eax, dword ptr[ecx]; cmp eax, $76697270; jne @CompareFB_7_1
+  movzx eax, word ptr [ecx + 4]; cmp eax, $7461; jne @CompareFB_7_1
+  mov al, byte ptr [ecx + 6]; cmp al, $65; jne @CompareFB_7_1
 
-  mov al, [ecx+0]; cmp al, 'p'; jne @CompareFB_7_1
-  mov al, [ecx+1]; cmp al, 'r'; jne @CompareFB_7_1
-  mov al, [ecx+2]; cmp al, 'i'; jne @CompareFB_7_1
-  mov al, [ecx+3]; cmp al, 'v'; jne @CompareFB_7_1
-  mov al, [ecx+4]; cmp al, 'a'; jne @CompareFB_7_1
-  mov al, [ecx+5]; cmp al, 't'; jne @CompareFB_7_1
-  mov al, [ecx+6]; cmp al, 'e'; jne @CompareFB_7_1
-
-  mov [Token.Token], 62
+  mov [Token.Token], ttprivate
   ret
 
 @CompareFB_7_1:
+  // Match extends
+  mov eax, dword ptr[ecx]; cmp eax, $65747865; jne @CompareFB_7_2
+  movzx eax, word ptr [ecx + 4]; cmp eax, $646E; jne @CompareFB_7_2
+  mov al, byte ptr [ecx + 6]; cmp al, $73; jne @CompareFB_7_2
 
-  mov al, [ecx+0]; cmp al, 'e'; jne @CompareFB_7_2
-  mov al, [ecx+1]; cmp al, 'x'; jne @CompareFB_7_2
-  mov al, [ecx+2]; cmp al, 't'; jne @CompareFB_7_2
-  mov al, [ecx+3]; cmp al, 'e'; jne @CompareFB_7_2
-  mov al, [ecx+4]; cmp al, 'n'; jne @CompareFB_7_2
-  mov al, [ecx+5]; cmp al, 'd'; jne @CompareFB_7_2
-  mov al, [ecx+6]; cmp al, 's'; jne @CompareFB_7_2
-
-  mov [Token.Token], 28
+  mov [Token.Token], ttextends
   ret
+
+
 {$ENDREGION}
 end;
 

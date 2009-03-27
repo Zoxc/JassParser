@@ -9,7 +9,7 @@ procedure InitKeywords;
 
 implementation
 
-uses Dialogs, Scanner, Tokens, SearchCode, HashExplorer, ComCtrls, Math;
+uses Dialogs, Scanner, Tokens, SearchCode, HashExplorer, ComCtrls, Math, GeneratorCommon;
 
 type
   PKeywordArray = ^TKeywordArray;
@@ -70,7 +70,7 @@ var
   i: TTokenType;
   Hash: Byte;
   Keyword: PAnsiChar;
-  x, y,Len,z, kl, lenlow, lenhigh: Integer;
+  x, y,Len,z, lenlow, lenhigh: Integer;
   Test: TList;
   Pair: PKeywordPair;
 
@@ -132,7 +132,7 @@ begin
   SearchForm.Memo.Lines.Add('  ret');
   SearchForm.Memo.Lines.Add('');
   SearchForm.Memo.Lines.Add('@CheckKeywords:');
-  SearchForm.Memo.Lines.Add('  jmp dword ptr [JumpTable + eax * 4]');
+  SearchForm.Memo.Lines.Add('  jmp dword ptr [@JumpTable + eax * 4]');
   SearchForm.Memo.Lines.Add('');
   SearchForm.Memo.Lines.Add('@Return:');
   SearchForm.Memo.Lines.Add('  ret');
@@ -211,20 +211,10 @@ begin
                 SearchForm.Memo.Lines.Add('');
                 SearchForm.Memo.Lines.Add('@Compare' + IntToHex(Hashes[x].Hash, 2) + '_' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len)+':');
 
-                Keyword := TokenName[Hashes[x].Keywords[y]];
-                kl := 0;
+                CompareKeyword(TokenName[Hashes[x].Keywords[y]], 'ecx', '@Compare' + IntToHex(Hashes[x].Hash, 2) + '_' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len + 1));
 
                 SearchForm.Memo.Lines.Add('');
-
-                while Keyword^ <> #0 do
-                  begin
-                    SearchForm.Memo.Lines.Add('  mov al, [ecx+'+IntToStr(kl)+']; cmp al, ''' + Keyword^ + '''; jne @Compare' + IntToHex(Hashes[x].Hash, 2) + '_' + IntToStr(Integer(Test[z]))+'_' + IntToStr(len + 1));
-                    Inc(kl);
-                    Inc(Keyword);
-                  end;
-                
-                SearchForm.Memo.Lines.Add('');
-                SearchForm.Memo.Lines.Add('  mov [Token.Token], '+ IntToStr(Integer(Hashes[x].Keywords[y])));
+                SearchForm.Memo.Lines.Add('  mov [Token.Token], tt' + TokenName[Hashes[x].Keywords[y]]);
                 SearchForm.Memo.Lines.Add('  ret');
 
                 Inc(len);

@@ -19,21 +19,22 @@ type
                 ttParentOpen,
                 ttParentClose,
                 ttEqual,
+                ttCompare,
 
                 // Operators
                 ttAdd,
                 ttSub,
                 ttDiv,
                 ttMul,
-                ttMod,
 
                 // Keywords
                 ttGlobals, ttEndGlobals,
                 ttFunction, ttEndFunction,
+                ttNull, ttTrue, ttFalse,
                 ttTakes, ttReturns, ttNothing,
                 ttConstant, ttNative,
                 ttType, ttExtends, ttArray,
-                ttLibrary, ttLibraryOnce, ttEndLibrary, ttRequires, ttNeeds, ttUses, ttInitializer,
+                ttLibrary, ttLibrary_Once, ttEndLibrary, ttRequires, ttNeeds, ttUses, ttInitializer,
                 ttSet, ttCall,
                 ttAnd, ttNot, ttOr,
                 ttScope, ttEndScope,
@@ -65,17 +66,18 @@ const
                   'opening parenthesis',
                   'closing parenthesis',
                   'equal',
+                  'compare',
 
                   // Operators
                   'addition',
                   'subtraction',
                   'division',
                   'multiplication',
-                  'mod',
 
                   //Keywords
                   'globals', 'endglobals',
                   'function', 'endfunction',
+                  'null', 'true', 'false',
                   'takes', 'returns', 'nothing',
                   'constant', 'native',
                   'type', 'extends', 'array',

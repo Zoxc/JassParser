@@ -600,12 +600,47 @@ end;
 
 procedure EqualProc;
 begin
-  Single(ttEqual);
+  Inc(Input);
+
+  if Input^ = '=' then
+    begin
+      Inc(Input);
+      Token.Token := ttCompare;
+    end
+  else
+    Token.Token := ttEqual;
+
+  Token.Stop := Input;
 end;
 
 procedure CommaProc;
 begin
   Single(ttComma);
+end;
+
+procedure ParentOpenProc;
+begin
+  Single(ttParentOpen);
+end;
+
+procedure ParentCloseProc;
+begin
+  Single(ttParentClose);
+end;
+
+procedure AddProc;
+begin
+  Single(ttAdd);
+end;
+
+procedure SubProc;
+begin
+  Single(ttSub);
+end;
+
+procedure MulProc;
+begin
+  Single(ttMul);
 end;
 
 procedure Init;
@@ -646,9 +681,17 @@ begin
   JumpTable[Byte(#0)] := NullProc;
   JumpTable[Byte(#10)] := LineFeedProc;
   JumpTable[Byte(#13)] := CarrigeReturnProc;
+  
   JumpTable[Byte('/')] := CommentProc;
   JumpTable[Byte('=')] := EqualProc;
   JumpTable[Byte(',')] := CommaProc;
+
+  JumpTable[Byte('(')] := ParentOpenProc;
+  JumpTable[Byte(')')] := ParentCloseProc;
+
+  JumpTable[Byte('+')] := AddProc;
+  JumpTable[Byte('-')] := SubProc;
+  JumpTable[Byte('*')] := MulProc;
 end;
 
 end.

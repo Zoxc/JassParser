@@ -5,10 +5,16 @@ interface
 type
   TTokenType = (// General
                 ttNone,
+                ttExpression,
                 ttLine,
                 ttEnd,
                 ttIdentifier,
                 ttNumber,
+                ttOctal,
+                ttReal,
+                ttHex,
+                ttRawId,
+                ttString,
 
                 // Signs
                 ttColon,
@@ -18,8 +24,17 @@ type
                 ttCurlyClose,
                 ttParentOpen,
                 ttParentClose,
+                ttSquareOpen,
+                ttSquareClose,
+                ttAssign,
+
+                // Comparasions
                 ttEqual,
-                ttCompare,
+                ttNotEqual,
+                ttLess,
+                ttLessOrEqual,
+                ttGreater,
+                ttGreaterOrEqual,
 
                 // Operators
                 ttAdd,
@@ -45,55 +60,89 @@ type
                 ttIf, ttEndIf, ttThen, ttElse, ttElseIf,
                 ttLoop, ttEndLoop, ttExitwhen,
                 ttPrivate, ttPublic, ttStub, ttStatic,
-                ttDelegate, ttKeyword, ttReadOnly
+                ttDelegate, ttKeyword, ttReadOnly,
+                ttDebug
                 );
 
 const
-   TokenName: array [TTokenType] of PAnsiChar  =  (
-                  // General
-                  'none',
-                  'newline',
-                  'end',
-                  'identifier',
-                  'number',
+   TokenName: array [TTokenType] of PAnsiChar = (
+      // General
+      'none',
+      'expression',
+      'newline',
+      'end',
+      'identifier',
+      'number',
+      'octal number',
+      'floating point',
+      'hex number',
+      'raw id',
+      'string',
 
-                  // Signs
-                  'colon',
-                  'comma',
-                  'semicolon',
-                  'opening curly bracket',
-                  'closing curly bracket',
-                  'opening parenthesis',
-                  'closing parenthesis',
-                  'equal',
-                  'compare',
+      // Signs
+      'colon',
+      'comma',
+      'semicolon',
+      'opening curly bracket',
+      'closing curly bracket',
+      'opening parenthesis',
+      'closing parenthesis',
+      'opening square bracket',
+      'closing square bracket',
+      'assignment',
 
-                  // Operators
-                  'addition',
-                  'subtraction',
-                  'division',
-                  'multiplication',
+      'equal',
+      'not equal',
+      'less',
+      'less or equal',
+      'greater',
+      'greater or equal',
 
-                  //Keywords
-                  'globals', 'endglobals',
-                  'function', 'endfunction',
-                  'null', 'true', 'false',
-                  'takes', 'returns', 'nothing',
-                  'constant', 'native',
-                  'type', 'extends', 'array',
-                  'library', 'library_once', 'endlibrary', 'requires', 'needs', 'uses', 'initializer',
-                  'set', 'call',
-                  'and', 'not', 'or',
-                  'scope', 'endscope',
-                  'interface', 'endinterface', 'defaults',
-                  'struct', 'endstruct',
-                  'method', 'endmethod', 'operator',
-                  'return', 'local',
-                  'if', 'endif', 'then', 'else', 'elseif',
-                  'loop', 'endloop', 'exitwhen',
-                  'private', 'public', 'stub', 'static',
-                  'delegate', 'keyword', 'readonly'
-                  );
+      // Operators
+      'addition',
+      'subtraction',
+      'division',
+      'multiplication',
+
+      //Keywords
+      'globals', 'endglobals',
+      'function', 'endfunction',
+      'null', 'true', 'false',
+      'takes', 'returns', 'nothing',
+      'constant', 'native',
+      'type', 'extends', 'array',
+      'library', 'library_once', 'endlibrary', 'requires', 'needs', 'uses', 'initializer',
+      'set', 'call',
+      'and', 'not', 'or',
+      'scope', 'endscope',
+      'interface', 'endinterface', 'defaults',
+      'struct', 'endstruct',
+      'method', 'endmethod', 'operator',
+      'return', 'local',
+      'if', 'endif', 'then', 'else', 'elseif',
+      'loop', 'endloop', 'exitwhen',
+      'private', 'public', 'stub', 'static',
+      'delegate', 'keyword', 'readonly',
+      'debug'
+    );
+
+  White = [#1..#9, #11..#12, #14..#32];
+
+  Alpha = ['A'..'Z', 'a'..'z'];
+
+  Num =  ['0'..'9'];
+
+  Octal =  ['0'..'7'];
+
+  Hex = Num + ['A'..'F', 'a'..'f'];
+
+  Ident = Alpha + Num + ['_'];
+
+  Operators = ['/', '*', '+', '-', '{', '}', '(', ')', ',', ';', ':', '='];
+
+  LineEnd = [#10, #13, #0];
+
+  Known = Ident + White + Operators + LineEnd;
 
 implementation
 

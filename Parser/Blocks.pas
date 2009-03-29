@@ -2,7 +2,7 @@ unit Blocks;
 
 interface
 
-uses SysUtils, Scopes, Classes;
+uses SysUtils, Scopes, Classes, Tokens;
 
 type
   PDocument = ^TDocument;
@@ -13,13 +13,17 @@ procedure ParseType;
 procedure ParseGlobals;
 procedure ParseDocument(var ADocument: TDocument);
 
+const
+  BlockEnders = [ttEnd, ttEndFunction, ttGlobals, ttFunction, ttNative, ttConstant];
+
 var
-  Document: PDocument;
-  Scope: PScope;
+  CurrentDocument: PDocument;
+  CurrentScope: PScope;
+  CurrentFunc: PFunction;
 
 implementation
 
-uses Scanner, Tokens, Dialogs, Statements, Expressions;
+uses Scanner, Dialogs, Statements, Expressions;
 
 procedure ParseGlobal;
 var GlobalType: PType;
@@ -30,14 +34,14 @@ var GlobalType: PType;
 begin
   IsConstant := Matches(ttConstant);
 
-  GlobalType := Scope.FindType;
+  GlobalType := CurrentScope.FindType;
 
   IsArray := Matches(ttArray);
 
   if IsConstant then
     GlobalInfo := Token;
 
-  Global := Scope.DeclareVariable;
+  Global := CurrentScope.DeclareVariable;
   Global.VariableType := GlobalType;
   Global.Flags := [];
 
@@ -47,8 +51,8 @@ begin
   if IsConstant then
     Include(Global.Flags, vfConstant);
 
-  if Matches(ttEqual) then
-    Expression
+  if Matches(ttAssign) then
+    ParseExpression
   else if IsConstant then
     with TErrorInfo.Create(eiConstantNeedInit, GlobalInfo)^ do
       begin
@@ -84,11 +88,11 @@ var NewType, Extends: PType;
 begin
   Match(ttType);
 
-  NewType := Document.DeclareType;
+  NewType := CurrentScope.DeclareType;
 
   Match(ttExtends);
 
-  Extends := Document.FindType;
+  Extends := CurrentScope.FindType;
   NewType.Extends := Extends;
 
   EndOfLine;
@@ -111,8 +115,8 @@ begin
         i := i + 1;
         SetLength(Header.Parameters, i + 1);
 
-        ParamType := Scope.FindType;
-        Header.Parameters[i] := Scope.DeclareVariable;
+        ParamType := CurrentScope.FindType;
+        Header.Parameters[i] := CurrentScope.DeclareVariable;
         Header.Parameters[i].VariableType := ParamType;
 
         More := Token.Token = ttComma;
@@ -126,7 +130,7 @@ begin
   Match(ttReturns);
 
   if not Matches(ttNothing) then
-    Header.Returns := Scope.FindType;
+    Header.Returns := CurrentScope.FindType;
 end;
 
 procedure ParseFunction;
@@ -134,7 +138,7 @@ var
   IsConstant: Boolean;
   IsNative: Boolean;
   Func: PFunction;
-  AScope: PScope;
+  Scope: PScope;
 begin
   IsConstant := Matches(ttConstant);
 
@@ -143,34 +147,39 @@ begin
   if not IsNative then
     Match(ttFunction);
 
-  Func := Scope.DeclareFunction;
+  Func := CurrentScope.DeclareFunction;
   Func.Native := IsNative;
   Func.Constant := IsConstant;
 
+  CurrentFunc := Func;
 
-  AScope := Scope;
-  Scope := Func.Scope;
+  Scope := CurrentScope;
+  CurrentScope := Func.Scope;
+  CurrentLoop := 0;
 
   ParseHeader(Func.Header);
 
   if not IsNative then
     begin
-      ParseStatements;
-      
+      while not (Token.Token in BlockEnders) do
+        ParseStatement;
+
       Match(ttEndFunction);
     end;
 
-  Scope := AScope;
+  CurrentScope := Scope;
+  CurrentFunc := nil;
+  CurrentLoop := 0;
 
   EndOfLine;
 end;
 
 procedure ParseDocument(var ADocument: TDocument);
 begin
-  Document := @ADocument;
-  Document.Parent := nil;
-  Scope := Document;
-  
+  CurrentDocument := @ADocument;
+  CurrentDocument.Parent := nil;
+  CurrentScope := CurrentDocument;
+
   repeat
 
     case Token.Token of
@@ -184,8 +193,8 @@ begin
 
   until False;
 
-  Document := nil;
-  Scope := nil;
+  CurrentDocument := nil;
+  CurrentScope := nil;
 end;
 
 end.

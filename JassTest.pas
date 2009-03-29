@@ -38,6 +38,7 @@ type
     procedure ScintillaMouseLeave(Sender: TObject);
     procedure ScintillaMouseEnter(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure ErrorsDblClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -111,6 +112,20 @@ begin
 
       ErrorInfo := ErrorInfo.Next;
     end;
+end;
+
+procedure TJassForm.ErrorsDblClick(Sender: TObject);
+var
+  ErrorInfo: PErrorInfo;
+begin
+  if Errors.ItemIndex = -1 then
+    Exit;
+
+  ErrorInfo := PErrorInfo(Errors.Items.Objects[Errors.ItemIndex]);
+
+  Scintilla.GotoLine(ErrorInfo.Line);
+  Scintilla.GotoPos(Cardinal(Scintilla.GetCurrentPos) + Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart));
+  Scintilla.SetFocus;
 end;
 
 procedure TJassForm.FormCreate(Sender: TObject);
@@ -243,7 +258,7 @@ begin
 
   ErrorInfo := Document.Errors;
   i := 0;
-  
+
   while ErrorInfo <> nil do
     begin
       if i > 150 then
@@ -252,7 +267,7 @@ begin
           ListBox.Items.EndUpdate;
           Exit;
         end;
-      ListBox.Items.Insert(0, 'Error [' + IntToStr(ErrorInfo.Line + 1) + ': ' + IntToStr(Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart) + 1) + '] ' + ErrorInfo.ToString);
+      ListBox.Items.InsertObject(0, 'Error [' + IntToStr(ErrorInfo.Line + 1) + ': ' + IntToStr(Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart) + 1) + '] ' + ErrorInfo.ToString, TObject(ErrorInfo));
 
       Inc(i);
 

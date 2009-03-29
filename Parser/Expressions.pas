@@ -4,11 +4,14 @@ interface
 
 uses Scopes;
 
-procedure Expression;
-procedure ConstantExpression;
+procedure ParseExpression;
+procedure ParseConstantExpression;
 
-procedure FunctionCall(Func: PFunction);
-procedure ConstantFunctionCall(Func: PFunction);
+procedure ParseFunctionCall(Func: PFunction);
+//procedure ParseConstantFunctionCall(Func: PFunction);
+
+procedure ParseVariable(Variable: PVariable);
+//procedure ParseVariable(Func: PFunction);
 
 implementation
 
@@ -17,37 +20,85 @@ uses SysUtils, Blocks, Scanner, Tokens;
 var
   Constant: Boolean;
 
-procedure FunctionCall(Func: PFunction);
+procedure ParseVariable(Variable: PVariable);
+var
+  VarToken: TTokenInfo;
 begin
-  if Func.Scope = Scope then
-    with TErrorInfo.Create(eiRecursive)^ do
-      begin
-        Identifier := Func;
-        Report;
-      end;
+  VarToken := Token;
 
   Next;
+
+  if Matches(ttSquareOpen) then
+    begin
+      ParseExpression;
+      
+      Match(ttSquareClose);
+    end;
 end;
 
-procedure ConstantFunctionCall(Func: PFunction);
+procedure ParseFunctionCall(Func: PFunction);
+var ParamCount: Integer;
+  FuncToken: TTokenInfo;
+begin
+  FuncToken := Token;
+
+  Next;
+
+  ParamCount := 0;
+
+  if Match(ttParentOpen) then
+    begin
+      if Token.Token <> ttParentClose then
+        begin
+          ParseExpression;
+
+          Inc(ParamCount);
+
+          while Token.Token = ttComma do
+            begin
+              Next;
+              Inc(ParamCount);
+              ParseExpression;
+            end;
+
+        end;
+      Match(ttParentClose);
+
+      if (Func <> nil) and (Length(Func.Header.Parameters) <> ParamCount) then
+        with TErrorInfo.Create(eiParameterCount, FuncToken)^ do
+          begin
+            CalledFunction := Func;
+            ParameterCount := ParamCount;
+            Report;
+          end;
+    end;
+end;
+{
+procedure ParseConstantFunctionCall(Func: PFunction);
 var Old: Boolean;
 begin
   Old := Constant;
   Constant := True;
 
-  FunctionCall(Func);
+  ParseFunctionCall(Func);
 
   Constant := Old;
 end;
-
-procedure Factor;
+}
+procedure ParseFactor;
 var Identifier: PIdentifier;
 begin
   case Token.Token of
     ttAdd, ttSub:
       begin
         Next;
-        Expression;
+        ParseExpression;
+      end;
+
+    ttFunction:
+      begin
+        Next;
+        CurrentScope.FindFunction;
       end;
     
     ttNull:
@@ -57,15 +108,15 @@ begin
 
     ttIdentifier:
       begin
-        Identifier := Scope^.Find(True);
+        Identifier := CurrentScope^.Find(True);
         
         if Identifier = nil then
           Unexpected
         else
           case Identifier.IdentifierType of
             //itType: ParseLocal(PType(Identifier));
-            //itVariable: ParseSet(PVariable(Identifier));
-            itFunction: FunctionCall(PFunction(Identifier));
+            itVariable: ParseVariable(PVariable(Identifier));
+            itFunction: ParseFunctionCall(PFunction(Identifier));
             else UnexpectedIdentifier(Identifier);
           end;
       end;
@@ -75,7 +126,17 @@ begin
         Next;
       end;
       
-    ttNumber:
+    ttNumber, ttOctal, ttHex, ttRawId:
+      begin
+        Next;
+      end;
+
+    ttString:
+      begin
+        Next;
+      end;
+
+    ttReal:
       begin
         Next;
       end;
@@ -84,56 +145,59 @@ begin
       begin
         Next;
 
-        Expression;
+        ParseExpression;
 
         Match(ttParentClose);
       end;
 
-    else Unexpected(False);
+    else Expected(ttExpression);
   end;
 end;
 
-procedure Arithmetic;
+procedure ParseArithmetic;
 begin
-  Factor;
+  ParseFactor;
 
   while Token.Token in [ttAdd, ttSub, ttMul, ttDiv] do
     begin
       Next;
 
-      Factor;
+      ParseFactor;
     end;
 end;
 
-procedure Comparison;
+procedure ParseComparison;
 begin
-  Arithmetic;
+  ParseArithmetic;
 
-  while Token.Token in [ttCompare] do
+  while Token.Token in [ttEqual, ttAssign, ttGreaterOrEqual, ttGreater, ttLess, ttLessOrEqual, ttNotEqual] do
     begin
+      if Token.Token = ttAssign then
+        TErrorInfo.Create(eiDoubleEquals).Report;
+        
       Next;
 
-      Arithmetic;
+      ParseArithmetic;
     end;
 end;
 
-procedure ConstantExpression;
+procedure ParseConstantExpression;
 var Old: Boolean;
 begin
   Old := Constant;
   Constant := True;
 
-  Expression;
+  ParseExpression;
 
   Constant := Old;
 end;
 
-procedure Expression;
+procedure ParseExpression;
 begin
   if Token.Token = ttNot then
     Next;
 
-  Comparison;
+  ParseComparison;
 
   while Token.Token in [ttAnd, ttOr] do
     begin
@@ -142,7 +206,7 @@ begin
       if Token.Token = ttNot then
         Next;
 
-      Comparison;
+      ParseComparison;
     end;
 end;
 

@@ -40,7 +40,10 @@ type
 
   TErrorType = (eiInvalidChars, eiNumInIdent, eiExpectedToken, eiUnexpectedToken,
     eiChildErrors, eiRedeclared, eiExpectedIdentifier, eiUndeclaredIdentifier,
-    eiConstantNeedInit, eiUnexpectedIdentifier, eiRecursive);
+    eiConstantNeedInit, eiUnexpectedIdentifier, eiParameterCount,
+    eiWrongReturn, eiDoubleEquals, eiExitWhen, eiInvalidReal, eiInvalidHex,
+    eiInvalidOctal, eiUnterminatedRawId, eiInvalidRawId, eiUnterminatedString,
+    eiInvalidStringEscape);
 
   TErrorInfo = record
     Start: PAnsiChar;
@@ -64,7 +67,10 @@ type
       eiUnexpectedToken: (UnexpectedToken: TTokenType);
       eiExpectedToken: (ExpectedToken: TTokenType; FoundToken: TTokenType);
       eiChildErrors: (Child: Pointer);
-      eiRedeclared, eiUnexpectedIdentifier, eiRecursive: (Identifier: PIdentifier);
+      eiRedeclared, eiUnexpectedIdentifier, eiWrongReturn: (Identifier: PIdentifier);
+      eiParameterCount: (CalledFunction: PFunction; ParameterCount: Integer);
+      eiInvalidRawId: (RawIdLength: Cardinal);
+      eiInvalidStringEscape: (EscapeChar: AnsiChar);
       eiExpectedIdentifier: (ExpectedIdentifier: TIdentifierType; FoundIdentifier: TIdentifierType);
   end;
 
@@ -73,21 +79,6 @@ var
   Input: PAnsiChar;
   Document: PDocumentInfo;
   JumpTable: array [0..255] of TProcedure;
-
-const
-  White = [#1..#9, #11..#12, #14..#32];
-
-  Alpha = ['A'..'Z', 'a'..'z'];
-
-  Num =  ['0'..'9'];
-
-  Ident = Alpha + Num + ['_'];
-
-  Operators = ['/', '*', '+', '-', '{', '}', '(', ')', ',', ';', ':', '='];
-
-  LineEnd = [#10, #13, #0];
-
-  Known = Ident + White + Operators + LineEnd;
 
 { Error handling }
 function Match(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline;
@@ -109,7 +100,7 @@ procedure Init;
 
 implementation
 
-uses Dialogs, ScannerKeywordsJumpTable;
+uses Dialogs, ScannerKeywordsJumpTable, ScannerHandlers;
 
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
@@ -224,22 +215,38 @@ end;
 
 function TErrorInfo.ToString: String;
 begin
- case ErrorType of
+  case ErrorType of
     eiInvalidChars:
       if Length > 1 then
         Result := 'Invalid characters ''' + Info + ''''
       else
         Result := 'Invalid character ''' + Info + '''';
 
+
+    eiExitWhen: Result := '''exitwhen'' without a loop';
+    eiDoubleEquals: Result := 'You need two equal signs to do a equality test';
     eiNumInIdent: Result := 'Identifiers can''t begin with numerals';
+    eiInvalidReal: Result := 'Invalid floating point number';
+    eiInvalidHex: Result := 'Invalid hex number';
+    eiInvalidOctal: Result := 'Invalid octal number';
     eiChildErrors: Result := PDocumentInfo(Child).Name + ' has errors';
     eiRedeclared: Result := '''' + Identifier.Name + ''' has already been declared';
     eiExpectedIdentifier: Result := 'Expected ''' + IdentifierName[ExpectedIdentifier] + ''', but found ''' + InfoPointer + ''' (' + IdentifierName[FoundIdentifier] + ')';
     eiUndeclaredIdentifier: Result := 'Undeclared identifier ''' + Info + '''';
     eiConstantNeedInit: Result := 'Constant variable ''' + Info + ''' needs initialization';
     eiUnexpectedIdentifier: Result := 'Unexpected identifier ''' + Identifier.Name + ''' (' + IdentifierName[Identifier.IdentifierType] + ')';
-    eiRecursive: Result := 'Function ''' + Identifier.Name + ''' can''t recursively call itself';
+    eiParameterCount: Result := 'Function ''' + CalledFunction.Name + ''' needs ' + IntToStr(System.Length(CalledFunction.Header.Parameters)) + ' parameters, but found ' + IntToStr(ParameterCount);
+    eiUnterminatedRawId: Result := 'The raw id was not terminated';
+    eiUnterminatedString: Result := 'The string was not terminated';
+    eiInvalidStringEscape: Result := '''' + EscapeChar + ''' is not a valid string escape character';
+    eiInvalidRawId: Result := 'Raw id with size ' + IntToStr(RawIdLength) + ' found, but the length must be 4 or 1';
     
+    eiWrongReturn:
+      if PFunction(Identifier).Header.Returns = nil then
+        Result := 'Cannot return a value from function ''' + Identifier.Name + ''''
+      else
+        Result := 'Cannot return without a value from function ''' + Identifier.Name + '''';
+        
     eiExpectedToken:
       if Info = nil then
         Result := 'Expected ''' + TokenName[ExpectedToken] + ''', but found ''' + TokenName[FoundToken] + ''''
@@ -457,56 +464,6 @@ begin
     JumpTable[Byte(Input^)];
 end;
 
-procedure NullProc;
-begin
-  if Document.Owner <> nil then
-    begin
-      Token.Line := Document.Line;
-      Token.LineStart := Document.LineStart;
-      
-      Input := Document.Stop;
-
-      Document := Document.Owner;
-      Token.Document := Document;
-      
-      Next;
-    end
-  else
-    begin
-      Token.Token := ttEnd;
-      Token.Stop := Input;
-    end;
-end;
-
-procedure LineFeedProc;
-begin
-  Token.Token := ttLine;
-  Token.Start := Token.LineStart;
-  Token.Stop := Input;
-
-  Inc(Input);
-
-  Inc(Token.Line);
-
-  Token.LineStart := Input;
-end;
-
-procedure CarrigeReturnProc;
-begin
-  Token.Token := ttLine;
-  Token.Start := Token.LineStart;
-  Token.Stop := Input;
-
-  Inc(Input);
-
-  if Input^ = #10 then
-    Inc(Input);
-
-  Inc(Token.Line);
-
-  Token.LineStart := Input;
-end;
-
 procedure CommentProc;
 var
   s: String;
@@ -552,97 +509,6 @@ begin
     end;
 end;
 
-procedure NumProc;
-begin
-  Inc(Input);
-  
-  Token.Token := ttNumber;
-
-  while Input^ in Num do
-    Inc(Input);
-
-  if Input^ in Ident then
-    begin
-      while Input^ in Ident do
-        Inc(Input);
-
-      Token.Token := ttIdentifier;
-      Token.Stop := Input;
-
-      TErrorInfo.Create(eiNumInIdent).Report;
-    end
-  else
-    Token.Stop := Input;
-end;
-
-procedure UnknownProc;
-var ErrorInfo: PErrorInfo;
-begin
-  while @JumpTable[Byte(Input^)] = @UnknownProc do
-    Inc(Input);
-
-  Token.Stop := Input;
-
-  ErrorInfo := TErrorInfo.Create(eiInvalidChars);
-  ErrorInfo.Info := Token.StrNew;
-  ErrorInfo.Report;
-  
-  Next;
-end;
-
-procedure WhiteProc;
-begin
-  while Input^ in White do
-    Inc(Input);
-
-  Next;
-end;
-
-procedure EqualProc;
-begin
-  Inc(Input);
-
-  if Input^ = '=' then
-    begin
-      Inc(Input);
-      Token.Token := ttCompare;
-    end
-  else
-    Token.Token := ttEqual;
-
-  Token.Stop := Input;
-end;
-
-procedure CommaProc;
-begin
-  Single(ttComma);
-end;
-
-procedure ParentOpenProc;
-begin
-  Single(ttParentOpen);
-end;
-
-procedure ParentCloseProc;
-begin
-  Single(ttParentClose);
-end;
-
-procedure AddProc;
-begin
-  Single(ttAdd);
-end;
-
-procedure SubProc;
-begin
-  Single(ttSub);
-end;
-
-procedure MulProc;
-begin
-  Single(ttMul);
-end;
-
 procedure Init;
 var i: AnsiChar;
 begin
@@ -664,8 +530,12 @@ begin
   JumpTable[Byte('_')] := IdentifierProc;
 
   // Numbers
-  for i := '0' to '9' do
+  for i := '1' to '9' do
     JumpTable[Byte(i)] := NumProc;
+
+  JumpTable[Byte('0')] := ZeroProc;
+  JumpTable[Byte('.')] := RealProc;
+  JumpTable[Byte('$')] := HexProc;
 
   // White
   for i := #1 to #9 do
@@ -677,17 +547,30 @@ begin
   for i := #14 to #32 do
     JumpTable[Byte(i)] := WhiteProc;
 
+  // Comparasions
+  JumpTable[Byte('=')] := EqualProc;
+  JumpTable[Byte('!')] := ExclamationProc;
+  JumpTable[Byte('<')] := LessProc;
+  JumpTable[Byte('>')] := GreaterProc;
+
   // Others
   JumpTable[Byte(#0)] := NullProc;
   JumpTable[Byte(#10)] := LineFeedProc;
   JumpTable[Byte(#13)] := CarrigeReturnProc;
+
+  JumpTable[Byte('"')] := StringProc;
+  JumpTable[Byte('''')] := RawIdProc;
   
   JumpTable[Byte('/')] := CommentProc;
-  JumpTable[Byte('=')] := EqualProc;
   JumpTable[Byte(',')] := CommaProc;
 
   JumpTable[Byte('(')] := ParentOpenProc;
   JumpTable[Byte(')')] := ParentCloseProc;
+
+  JumpTable[Byte('[')] := SquareOpenProc;
+  JumpTable[Byte(']')] := SquareCloseProc;
+
+  // Math
 
   JumpTable[Byte('+')] := AddProc;
   JumpTable[Byte('-')] := SubProc;

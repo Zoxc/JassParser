@@ -4,7 +4,10 @@ interface
 
 uses SysUtils;
 
-procedure ParseStatements;
+procedure ParseStatement;
+
+var
+  CurrentLoop: Integer;
 
 implementation
 
@@ -23,19 +26,19 @@ begin
       Next;
     end
   else
-    LocalType := Scope.FindType;
+    LocalType := CurrentScope.FindType;
 
   IsArray := Matches(ttArray);
 
-  Local := Scope.DeclareVariable;
+  Local := CurrentScope.DeclareVariable;
   Local.VariableType := LocalType;
   Local.Flags := [];
 
   if IsArray then
     Include(Local.Flags, vfArray);
 
-  if Matches(ttEqual) then
-      Expression;
+  if Matches(ttAssign) then
+      ParseExpression;
 
   EndOfLine;
 end;
@@ -44,7 +47,7 @@ procedure ParseSet(Identifier: PVariable);
 var
   Variable: PVariable;
 begin
-  Match(ttSet);
+  Matches(ttDebug); Match(ttSet);
 
   if Identifier <> nil then
     begin
@@ -52,11 +55,18 @@ begin
       Next;
     end
   else
-    Variable := Scope.FindVariable;
+    Variable := CurrentScope.FindVariable;
 
-  Match(ttEqual);
+  if Matches(ttSquareOpen) then
+    begin
+      ParseExpression;
+      
+      Match(ttSquareClose);
+    end;
 
-  Expression;
+  Match(ttAssign);
+
+  ParseExpression;
 
   EndOfLine;
 end;
@@ -65,16 +75,14 @@ procedure ParseCall(Identifier: PFunction);
 var
   Func: PFunction;
 begin
-  Match(ttCall);
+  Matches(ttDebug); Match(ttCall);
 
   if Identifier <> nil then
     Func := Identifier
   else
-    Func := Scope.FindFunction(False);
+    Func := CurrentScope.FindFunction(False);
 
-  FunctionCall(Func);
-
-  Match(ttEqual);
+  ParseFunctionCall(Func);
 
   EndOfLine;
 end;
@@ -82,7 +90,7 @@ end;
 procedure ParseIdentifier;
 var Identifier: PIdentifier;
 begin
-  Identifier := Scope^.Find(True);
+  Identifier := CurrentScope^.Find(True);
 
   if Identifier = nil then
     Unexpected
@@ -95,19 +103,154 @@ begin
     end;
 end;
 
-procedure ParseStatements;
+procedure ParseReturn;
+var
+  ReturnToken: TTokenInfo;
 begin
-  repeat
-    case Token.Token of
-      ttLocal: ParseLocal(nil);
-      ttSet: ParseSet(nil);
-      ttCall: ParseCall(nil);
-      ttIdentifier: ParseIdentifier;
-      ttEnd, ttEndFunction, ttGlobals, ttFunction, ttNative, ttConstant, ttEndLoop: Break;
-      ttLine: Next;
-      else Unexpected;
+  ReturnToken := Token;
+      
+  Match(ttReturn);
+
+  if Token.Token = ttLine then
+    begin
+      if CurrentFunc.Header.Returns <> nil then
+        with TErrorInfo.Create(eiWrongReturn, ReturnToken)^ do
+          begin
+            Identifier := CurrentFunc;
+            Report;
+          end;
+    end
+  else
+    begin
+      if CurrentFunc.Header.Returns = nil then
+        with TErrorInfo.Create(eiWrongReturn, ReturnToken)^ do
+          begin
+            Identifier := CurrentFunc;
+            Report;
+          end;
+
+      ParseExpression;
     end;
-  until False;
+
+  EndOfLine;
+end;
+
+procedure ParseIf;
+const 
+  IfEnders = BlockEnders + [ttEndIf, ttElse, ttElseIf];
+var
+  FoundElse: Boolean;
+begin
+  Matches(ttDebug); Match(ttIf);
+
+  ParseExpression;
+
+  Match(ttThen);
+
+  EndOfLine;
+
+  while not (Token.Token in IfEnders) do
+    ParseStatement;
+
+  FoundElse := False;
+
+  while Token.Token in [ttElse, ttElseIf] do
+    begin
+      if Token.Token = ttElseIf then
+        begin
+          if FoundElse then
+            Unexpected(False);
+            
+          Next;
+          
+          ParseExpression;
+
+          Match(ttThen)
+        end
+      else
+        begin
+          if FoundElse then
+            Unexpected(False);
+
+          FoundElse := True;
+          Next;
+        end;
+
+      EndOfLine;
+
+      while not (Token.Token in IfEnders) do
+        ParseStatement;
+    end;
+
+  Match(ttEndIf);
+  
+  EndOfLine;
+end;
+
+procedure ParseExitWhen;
+begin
+  if CurrentLoop <= 0 then
+    TErrorInfo.Create(eiExitWhen).Report;
+
+  Match(ttExitwhen);
+
+  ParseExpression;
+
+  EndOfLine;
+end;
+
+procedure ParseLoop;
+const 
+  LoopEnders = BlockEnders + [ttEndLoop];
+begin
+  Match(ttLoop);
+  EndOfLine;
+
+  Inc(CurrentLoop);
+
+  while not (Token.Token in LoopEnders) do
+    ParseStatement;
+
+  Dec(CurrentLoop);
+
+  Match(ttEndLoop);
+  EndOfLine;
+end;
+
+procedure ParseStatement;
+var DebugToken: TTokenInfo;
+begin
+  case Token.Token of
+    ttDebug:
+      begin
+        DebugToken := Token;
+        Next;
+
+        case Token.Token of
+          ttSet: ParseSet(nil);
+          ttCall: ParseCall(nil);
+          ttIf: ParseIf;
+          ttLoop: ParseLoop;
+          else
+            with TErrorInfo.Create(eiUnexpectedToken, DebugToken)^ do
+              begin
+                UnexpectedToken := ttDebug;
+
+                Report;
+              end;
+        end;
+      end;
+    ttLocal: ParseLocal(nil);
+    ttSet: ParseSet(nil);
+    ttCall: ParseCall(nil);
+    ttIdentifier: ParseIdentifier;
+    ttReturn: ParseReturn;
+    ttIf: ParseIf;
+    ttLoop: ParseLoop;
+    ttExitwhen: ParseExitWhen;
+    ttLine: Next;
+    else Unexpected;
+  end;
 end;
 
 end.

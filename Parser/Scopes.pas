@@ -229,7 +229,7 @@ begin
 
   New(Result.Scope);
   Result.Scope.Init;
-  Result.Scope.Parent := Blocks.Scope;
+  Result.Scope.Parent := CurrentScope;
 
   Result.Header.Returns := nil;
   Result.IdentifierType := itFunction;

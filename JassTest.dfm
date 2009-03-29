@@ -65,6 +65,11 @@ object JassForm: TJassForm
       'function Testing takes handle hm, widget boo returns nothing'
       '  local unit hi = null'
       '  set hi = null'
+      '  if hi = 1 then'
+      '    set hi = null'
+      '  else'
+      '  elseif then'
+      '  endif'
       '  call Testing(hm, boo)'
       'endfunction'
       ''
@@ -79,12 +84,7 @@ object JassForm: TJassForm
       ''
       '    widget WtfIsWidget'
       ''
-      ' endglobals'
-      ''
-      
-        'native LeaderboardSetItemLabelColor     takes leaderboard lb, in' +
-        'teger whichItem, integer red, integer green, integer blue, integ' +
-        'er alpha returns nothing')
+      ' endglobals')
     EOLStyle = eolCRLF
     Indentation = [TabIndents]
     IndentWidth = 0
@@ -498,6 +498,7 @@ object JassForm: TJassForm
     Anchors = [akLeft, akRight, akBottom]
     ItemHeight = 13
     TabOrder = 2
+    OnDblClick = ErrorsDblClick
   end
   object Button2: TButton
     Left = 416

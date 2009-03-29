@@ -2,20 +2,25 @@ unit Documents;
 
 interface
 
-uses Classes;
+uses Classes, Scopes;
 
 var
   DocumentList: TList;
+  HandleType: PType;
+  StringType: PType;
+  IntegerType: PType;
+  RealType: PType;
+  BooleanType: PType;
+  CodeType: PType;
 
 implementation
 
-uses SysUtils, Blocks, Scopes;
+uses SysUtils, Blocks;
 
 var NativeDocument: TDocument;
 
-procedure DeclareType(Name: PAnsiChar); inline;
+procedure DeclareType(var AType: PType; Name: PAnsiChar); inline;
 var
-  AType: PType;
   Length: Cardinal;
 begin
   New(AType);
@@ -34,12 +39,12 @@ initialization
   DocumentList.Add(@NativeDocument);
   NativeDocument.Init;
 
-  DeclareType('handle');
-  DeclareType('string');
-  DeclareType('integer');
-  DeclareType('real');
-  DeclareType('boolean');
-  DeclareType('code');
+  DeclareType(HandleType, 'handle');
+  DeclareType(StringType, 'string');
+  DeclareType(IntegerType, 'integer');
+  DeclareType(RealType, 'real');
+  DeclareType(BooleanType, 'boolean');
+  DeclareType(CodeType, 'code');
 
 
 finalization

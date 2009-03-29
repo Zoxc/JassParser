@@ -8,16 +8,20 @@ procedure ParseStatement;
 
 var
   CurrentLoop: Integer;
+  NoLocals: Boolean;
 
 implementation
 
-uses Blocks, Scopes, Scanner, Tokens, Expressions;
+uses Blocks, Scopes, Scanner, Tokens, Expressions, TypesUtils;
 
 procedure ParseLocal(Identifier: PType);
 var LocalType: PType;
   Local: PVariable;
   IsArray: Boolean;
 begin
+  if NoLocals then
+    TErrorInfo.Create(eiLostLocal).Report;
+    
   Match(ttLocal);
 
   if Identifier <> nil then
@@ -38,7 +42,7 @@ begin
     Include(Local.Flags, vfArray);
 
   if Matches(ttAssign) then
-      ParseExpression;
+      ParseRootExpression(LocalType);
 
   EndOfLine;
 end;
@@ -59,14 +63,17 @@ begin
 
   if Matches(ttSquareOpen) then
     begin
-      ParseExpression;
-      
+      ParseRootExpression(IntegerType);
+        
       Match(ttSquareClose);
     end;
 
   Match(ttAssign);
 
-  ParseExpression;
+  if Variable <> nil then
+    ParseRootExpression(Variable.VariableType)
+  else
+    ParseRootExpression(nil);
 
   EndOfLine;
 end;
@@ -74,6 +81,7 @@ end;
 procedure ParseCall(Identifier: PFunction);
 var
   Func: PFunction;
+  Range: TRangeInfo;
 begin
   Matches(ttDebug); Match(ttCall);
 
@@ -82,7 +90,7 @@ begin
   else
     Func := CurrentScope.FindFunction(False);
 
-  ParseFunctionCall(Func);
+  ParseFunctionCall(Range, Func);
 
   EndOfLine;
 end;
@@ -113,7 +121,7 @@ begin
 
   if Token.Token = ttLine then
     begin
-      if CurrentFunc.Header.Returns <> nil then
+      if CurrentFunc.Header.Returns <> NothingType then
         with TErrorInfo.Create(eiWrongReturn, ReturnToken)^ do
           begin
             Identifier := CurrentFunc;
@@ -122,14 +130,14 @@ begin
     end
   else
     begin
-      if CurrentFunc.Header.Returns = nil then
+      if CurrentFunc.Header.Returns = NothingType then
         with TErrorInfo.Create(eiWrongReturn, ReturnToken)^ do
           begin
             Identifier := CurrentFunc;
             Report;
           end;
 
-      ParseExpression;
+      ParseRootExpression(CurrentFunc.Header.Returns)
     end;
 
   EndOfLine;
@@ -143,7 +151,7 @@ var
 begin
   Matches(ttDebug); Match(ttIf);
 
-  ParseExpression;
+  ParseRootExpression(BooleanType);
 
   Match(ttThen);
 
@@ -163,7 +171,7 @@ begin
             
           Next;
           
-          ParseExpression;
+          ParseRootExpression(BooleanType);
 
           Match(ttThen)
         end
@@ -194,7 +202,7 @@ begin
 
   Match(ttExitwhen);
 
-  ParseExpression;
+  ParseRootExpression(BooleanType);
 
   EndOfLine;
 end;
@@ -220,6 +228,9 @@ end;
 procedure ParseStatement;
 var DebugToken: TTokenInfo;
 begin
+  if (Token.Token <> ttLocal) and (Token.Token <> ttLine) then
+    NoLocals := True;
+    
   case Token.Token of
     ttDebug:
       begin

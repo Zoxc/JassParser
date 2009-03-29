@@ -23,7 +23,7 @@ var
 
 implementation
 
-uses Scanner, Dialogs, Statements, Expressions;
+uses Scanner, Dialogs, Statements, Expressions, Documents, TypesUtils;
 
 procedure ParseGlobal;
 var GlobalType: PType;
@@ -52,7 +52,7 @@ begin
     Include(Global.Flags, vfConstant);
 
   if Matches(ttAssign) then
-    ParseExpression
+      ParseRootExpression(GlobalType)
   else if IsConstant then
     with TErrorInfo.Create(eiConstantNeedInit, GlobalInfo)^ do
       begin
@@ -130,7 +130,9 @@ begin
   Match(ttReturns);
 
   if not Matches(ttNothing) then
-    Header.Returns := CurrentScope.FindType;
+    Header.Returns := CurrentScope.FindType
+  else
+    Header.Returns := NothingType;
 end;
 
 procedure ParseFunction;
@@ -156,6 +158,7 @@ begin
   Scope := CurrentScope;
   CurrentScope := Func.Scope;
   CurrentLoop := 0;
+  NoLocals := False;
 
   ParseHeader(Func.Header);
 

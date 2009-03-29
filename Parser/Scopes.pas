@@ -24,7 +24,8 @@ type
   end;
 
   TType = object(TIdentifier)
-    Extends: PIdentifier;
+    Extends: PType;
+    function BaseType: PType; inline;
   end;
 
   TVariableFlag = (vfArray, vfParameter, vfConstant);
@@ -93,6 +94,15 @@ begin
 
   Dispose(Name);
   Dispose(@Self);
+end;
+
+function TType.BaseType: PType;
+begin
+  Result := @Self;
+
+  if Result <> nil then
+    while Result.Extends <> nil do
+      Result := Result.Extends;
 end;
 
 procedure TScope.Init;

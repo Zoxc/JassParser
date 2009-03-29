@@ -22,6 +22,18 @@ type
     function StrNew: PAnsiChar;
   end;
 
+  TRangeInfo = record
+    Stop: PAnsiChar;
+    Start: PAnsiChar;
+    Document: PDocumentInfo;
+    Line: Cardinal;
+    LineStart: PAnsiChar;
+    function Length: Cardinal; inline;
+    procedure Create; inline;
+    procedure Expand; overload; inline;
+    procedure Expand(var Range: TRangeInfo); overload; inline;
+  end;
+
   TDocumentInfo = record
     Name: String;
     Children: PDocumentInfo;
@@ -43,12 +55,13 @@ type
     eiConstantNeedInit, eiUnexpectedIdentifier, eiParameterCount,
     eiWrongReturn, eiDoubleEquals, eiExitWhen, eiInvalidReal, eiInvalidHex,
     eiInvalidOctal, eiUnterminatedRawId, eiInvalidRawId, eiUnterminatedString,
-    eiInvalidStringEscape);
+    eiInvalidStringEscape, eiLostLocal, eiArithmetic, eiConvertType,
+    eiBoolean);
 
   TErrorInfo = record
     Start: PAnsiChar;
     Length: Cardinal;
-    
+
     Line: Cardinal;
     LineStart: PAnsiChar;
 
@@ -58,6 +71,7 @@ type
 
     class function Create(const ErrorType: TErrorType): PErrorInfo; overload; static;
     class function Create(const ErrorType: TErrorType; const Token: TTokenInfo): PErrorInfo; overload; static;
+    class function Create(const ErrorType: TErrorType; const Range: TRangeInfo): PErrorInfo; overload; static;
     procedure Free;
 
     procedure Report;
@@ -67,11 +81,12 @@ type
       eiUnexpectedToken: (UnexpectedToken: TTokenType);
       eiExpectedToken: (ExpectedToken: TTokenType; FoundToken: TTokenType);
       eiChildErrors: (Child: Pointer);
-      eiRedeclared, eiUnexpectedIdentifier, eiWrongReturn: (Identifier: PIdentifier);
+      eiRedeclared, eiUnexpectedIdentifier, eiWrongReturn, eiArithmetic: (Identifier: PIdentifier);
       eiParameterCount: (CalledFunction: PFunction; ParameterCount: Integer);
       eiInvalidRawId: (RawIdLength: Cardinal);
       eiInvalidStringEscape: (EscapeChar: AnsiChar);
       eiExpectedIdentifier: (ExpectedIdentifier: TIdentifierType; FoundIdentifier: TIdentifierType);
+      eiConvertType: (FromType, ToType: PType);
   end;
 
 var
@@ -81,14 +96,22 @@ var
   JumpTable: array [0..255] of TProcedure;
 
 { Error handling }
-function Match(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline;
-function Matches(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline;
+
+function Match(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; overload; inline;
+function Matches(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean; overload; inline;
+
+function Match(AToken: TTokenType; var Range: TRangeInfo; GoNext: Boolean = True; Skip: Boolean = False): Boolean; overload; inline;
+function Matches(AToken: TTokenType; var Range: TRangeInfo; GoNext: Boolean = True; Skip: Boolean = False): Boolean; overload; inline;
+
 procedure Expected(TokenType: TTokenType; DoSkip: Boolean = False);
 procedure Unexpected(DoSkip: Boolean = True);
 procedure UnexpectedIdentifier(Identifier: PIdentifier; DoSkip: Boolean = True);
 
+{ Parsing }
+
 function Parse(Text: PAnsiChar): PDocumentInfo;
-procedure Next; inline;
+procedure Next; inline; overload;
+procedure Next(var Range: TRangeInfo); inline; overload;
 procedure EndOfLine; inline;
 
 function GetLength(Start, Stop: PAnsiChar): Cardinal; inline;
@@ -169,6 +192,40 @@ begin
     ChildErrors(Document.Owner, Document);
 end;
 
+{ TRangeInfo }
+
+procedure TRangeInfo.Create;
+begin
+  Start := Token.Start;
+  Stop := Token.Stop;
+  Document := Token.Document;
+  Line := Token.Line;
+  LineStart := Token.LineStart;
+
+  if Token.Token = ttLine then
+    begin
+      Dec(Line);
+      Start := Token.Stop;
+      LineStart := Token.Start;
+    end;
+end;
+
+procedure TRangeInfo.Expand;
+begin
+  Stop := Token.Stop;
+end;
+
+procedure TRangeInfo.Expand(var Range: TRangeInfo);
+begin
+  Stop := Range.Stop;
+end;
+
+function TRangeInfo.Length: Cardinal;
+begin
+  Result := Cardinal(Stop) - Cardinal(Start);
+end;
+
+
 { TErrorInfo }
 
 procedure TErrorInfo.Report;
@@ -186,6 +243,18 @@ begin
 
   Next := Token.Document.Errors;
   Token.Document.Errors := @Self;
+end;
+
+class function TErrorInfo.Create(const ErrorType: TErrorType; const Range: TRangeInfo): PErrorInfo;
+begin
+  New(Result);
+  Result.ErrorType := ErrorType;
+
+  Result.Start := Range.Start;
+  Result.Length := Range.Length;
+  Result.Line := Range.Line;
+  Result.LineStart := Range.LineStart;
+  Result.Info := nil;
 end;
 
 class function TErrorInfo.Create(const ErrorType: TErrorType; const Token: TTokenInfo): PErrorInfo;
@@ -222,12 +291,15 @@ begin
       else
         Result := 'Invalid character ''' + Info + '''';
 
-
+    eiConvertType: Result := 'Unable to convert type ''' + FromType.Name + ''' to type ''' + ToType.Name + '''';
+    eiBoolean: Result := 'Cannot perform logic operations on type ''' + Identifier.Name + '''';
+    eiArithmetic: Result := 'Cannot perform arithmetic operations on type ''' + Identifier.Name + '''';
     eiExitWhen: Result := '''exitwhen'' without a loop';
     eiDoubleEquals: Result := 'You need two equal signs to do a equality test';
     eiNumInIdent: Result := 'Identifiers can''t begin with numerals';
     eiInvalidReal: Result := 'Invalid floating point number';
     eiInvalidHex: Result := 'Invalid hex number';
+    eiLostLocal: Result := 'Local variable declarations must be at the start of a function';
     eiInvalidOctal: Result := 'Invalid octal number';
     eiChildErrors: Result := PDocumentInfo(Child).Name + ' has errors';
     eiRedeclared: Result := '''' + Identifier.Name + ''' has already been declared';
@@ -365,6 +437,23 @@ begin
   Move(Token.Start^, PChar(Result)^, Token.Length);
 end;
 
+function Matches(AToken: TTokenType; var Range: TRangeInfo; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline; overload;
+begin
+  if Token.Token <> AToken then
+      Result := False
+  else
+    begin
+      if GoNext then
+        begin
+          {if Token.Token in [ttLine, ttEnd] then
+            Token.Error := False
+          else}
+            Next(Range);
+        end;
+      Result := True;
+    end;
+end;
+
 function Matches(AToken: TTokenType; GoNext: Boolean = True; Skip: Boolean = False): Boolean;
 begin
   if Token.Token <> AToken then
@@ -377,6 +466,27 @@ begin
             Token.Error := False
           else}
             Next;
+        end;
+      Result := True;
+    end;
+end;
+
+function Match(AToken: TTokenType; var Range: TRangeInfo; GoNext: Boolean = True; Skip: Boolean = False): Boolean; inline; overload;
+begin
+  if Token.Token <> AToken then
+    begin
+      Expected(AToken, Skip);
+
+      Result := False;
+    end
+  else
+    begin
+      if GoNext then
+        begin
+          {if Token.Token in [ttLine, ttEnd] then
+            Token.Error := False
+          else}
+          Next(Range);
         end;
       Result := True;
     end;
@@ -452,6 +562,12 @@ begin
 
   Document := Doc;
   Token.Document := Doc;
+end;
+
+procedure Next(var Range: TRangeInfo);
+begin
+  Range.Expand;
+  Next;
 end;
 
 procedure Next;

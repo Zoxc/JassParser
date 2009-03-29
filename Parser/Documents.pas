@@ -6,16 +6,10 @@ uses Classes, Scopes;
 
 var
   DocumentList: TList;
-  HandleType: PType;
-  StringType: PType;
-  IntegerType: PType;
-  RealType: PType;
-  BooleanType: PType;
-  CodeType: PType;
 
 implementation
 
-uses SysUtils, Blocks;
+uses SysUtils, Blocks, TypesUtils;
 
 var NativeDocument: TDocument;
 
@@ -34,6 +28,10 @@ begin
   NativeDocument.Add(AType);
 end;
 
+var
+  NullTypeVar: TType;
+  NothingTypeVar: TType;
+
 initialization
   DocumentList := TList.Create;
   DocumentList.Add(@NativeDocument);
@@ -46,6 +44,17 @@ initialization
   DeclareType(BooleanType, 'boolean');
   DeclareType(CodeType, 'code');
 
+  NullType := @NullTypeVar;
+  NullType.Extends := nil;
+  NullType.Next := nil;
+  NullType.IdentifierType := itType;
+  NullType.Name := 'null';
+
+  NothingType := @NothingTypeVar;
+  NothingType.Extends := nil;
+  NothingType.Next := nil;
+  NothingType.IdentifierType := itType;
+  NothingType.Name := 'nothing';
 
 finalization
   DocumentList.Free;

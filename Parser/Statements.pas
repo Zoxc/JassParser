@@ -9,6 +9,7 @@ procedure ParseStatement;
 var
   CurrentLoop: Integer;
   NoLocals: Boolean;
+  NoReturn: Boolean;
 
 implementation
 
@@ -17,11 +18,18 @@ uses Blocks, Scopes, Scanner, Tokens, Expressions, TypesUtils;
 procedure ParseLocal(Identifier: PType);
 var LocalType: PType;
   Local: PVariable;
+  LocalInfo: TTokenInfo;
   IsArray: Boolean;
 begin
+  if Token.Token = ttConstant then
+    begin
+      TErrorInfo.Create(eiConstantLocal).Report;
+      Next;
+    end;
+
   if NoLocals then
     TErrorInfo.Create(eiLostLocal).Report;
-    
+
   Match(ttLocal);
 
   if Identifier <> nil then
@@ -34,15 +42,40 @@ begin
 
   IsArray := Matches(ttArray);
 
+  if IsArray then
+    LocalInfo := Token;
+
+  if IsArray and (LocalType.BaseType = CodeType) then
+    TErrorInfo.Create(eiCodeArray, LocalInfo).Report;
+
   Local := CurrentScope.DeclareVariable;
   Local.VariableType := LocalType;
-  Local.Flags := [];
+  Local.Flags := [vfLocal];
 
   if IsArray then
-    Include(Local.Flags, vfArray);
+    begin
+      Include(Local.Flags, vfArray);
+      Local.Initialized := True;
+    end;
 
   if Matches(ttAssign) then
+    begin
+       if IsArray then
+        with TErrorInfo.Create(eiArrayInitiation, LocalInfo)^ do
+          begin
+            Identifier := Local;
+
+            Report;
+          end;
+          
+      Local.Initialized := True;
+
+      CurrentLocal := True;
+      CurrentDeclaration := Local;
       ParseRootExpression(LocalType);
+      CurrentDeclaration := nil;
+      CurrentLocal := False;
+    end;
 
   EndOfLine;
 end;
@@ -50,8 +83,11 @@ end;
 procedure ParseSet(Identifier: PVariable);
 var
   Variable: PVariable;
+  VarToken: TTokenInfo;
 begin
   Matches(ttDebug); Match(ttSet);
+
+  VarToken := Token;
 
   if Identifier <> nil then
     begin
@@ -61,17 +97,53 @@ begin
   else
     Variable := CurrentScope.FindVariable;
 
+  if (Variable <> nil) and (not (vfLocal in Variable.Flags)) then
+    begin
+      if CurrentConstant then
+        with TErrorInfo.Create(eiVariableAssignmentInConstant, VarToken)^ do
+          begin
+            Identifier := Variable;
+
+            Report;
+          end
+      else if vfConstant in Variable.Flags then
+        with TErrorInfo.Create(eiVariableInConstant, VarToken)^ do
+          begin
+            Identifier := Variable;
+
+            Report;
+          end
+    end;
+
   if Matches(ttSquareOpen) then
     begin
+      if (Variable <> nil) and (not (vfArray in Variable.Flags)) then
+        with TErrorInfo.Create(eiVariableNotArray, VarToken)^ do
+          begin
+            Identifier := Variable;
+
+            Report;
+          end;
+          
       ParseRootExpression(IntegerType);
         
       Match(ttSquareClose);
-    end;
+    end
+  else if (Variable <> nil) and (vfArray in Variable.Flags) then
+    with TErrorInfo.Create(eiVariableArray, VarToken)^ do
+      begin
+        Identifier := Variable;
+
+        Report;
+      end;
 
   Match(ttAssign);
 
   if Variable <> nil then
-    ParseRootExpression(Variable.VariableType)
+    begin
+      Variable.Initialized := True;
+      ParseRootExpression(Variable.VariableType);
+    end
   else
     ParseRootExpression(nil);
 
@@ -116,8 +188,10 @@ var
   ReturnToken: TTokenInfo;
 begin
   ReturnToken := Token;
+
+  NoReturn := False;
       
-  Match(ttReturn);
+  Match(ttReturn, True, True);
 
   if Token.Token = ttLine then
     begin
@@ -136,8 +210,11 @@ begin
             Identifier := CurrentFunc;
             Report;
           end;
-
-      ParseRootExpression(CurrentFunc.Header.Returns)
+          
+      if CurrentFunc.Header.Returns = NothingType then
+        ParseRootExpression(nil)
+      else
+        ParseRootExpression(CurrentFunc.Header.Returns)
     end;
 
   EndOfLine;
@@ -228,7 +305,7 @@ end;
 procedure ParseStatement;
 var DebugToken: TTokenInfo;
 begin
-  if (Token.Token <> ttLocal) and (Token.Token <> ttLine) then
+  if (Token.Token <> ttLocal) and (Token.Token in [ttDebug, ttSet, ttCall, ttIdentifier, ttReturn, ttReturns, ttIf, ttLoop, ttExitwhen]) then
     NoLocals := True;
     
   case Token.Token of
@@ -251,11 +328,11 @@ begin
               end;
         end;
       end;
-    ttLocal: ParseLocal(nil);
+    ttLocal, ttConstant: ParseLocal(nil);
     ttSet: ParseSet(nil);
     ttCall: ParseCall(nil);
     ttIdentifier: ParseIdentifier;
-    ttReturn: ParseReturn;
+    ttReturn, ttReturns: ParseReturn;
     ttIf: ParseIf;
     ttLoop: ParseLoop;
     ttExitwhen: ParseExitWhen;

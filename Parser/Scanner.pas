@@ -56,7 +56,11 @@ type
     eiWrongReturn, eiDoubleEquals, eiExitWhen, eiInvalidReal, eiInvalidHex,
     eiInvalidOctal, eiUnterminatedRawId, eiInvalidRawId, eiUnterminatedString,
     eiInvalidStringEscape, eiLostLocal, eiArithmetic, eiConvertType,
-    eiBoolean);
+    eiBoolean, eiUsedInDeclaration, eiUninitializedVariable, eiVariableInConstant,
+    eiFunctionInGlobal, eiArrayInitiation, eiFunctionInConstant,
+    eiConstantAssignment, eiVariableAssignmentInConstant, eiVariableNotArray,
+    eiVariableArray, eiCodeArray, eiConstantLocal, eiCodeParams,
+    eiRecursiveLocals);
 
   TErrorInfo = record
     Start: PAnsiChar;
@@ -79,13 +83,25 @@ type
 
     case ErrorType: TErrorType of
       eiUnexpectedToken: (UnexpectedToken: TTokenType);
+
       eiExpectedToken: (ExpectedToken: TTokenType; FoundToken: TTokenType);
+
       eiChildErrors: (Child: Pointer);
-      eiRedeclared, eiUnexpectedIdentifier, eiWrongReturn, eiArithmetic: (Identifier: PIdentifier);
+
+      eiRedeclared, eiUnexpectedIdentifier, eiWrongReturn, eiArithmetic,
+      eiUsedInDeclaration, eiUninitializedVariable, eiVariableInConstant,
+      eiFunctionInGlobal, eiArrayInitiation, eiFunctionInConstant,
+      eiConstantAssignment, eiVariableAssignmentInConstant, eiVariableNotArray,
+      eiVariableArray: (Identifier: PIdentifier);
+
       eiParameterCount: (CalledFunction: PFunction; ParameterCount: Integer);
+
       eiInvalidRawId: (RawIdLength: Cardinal);
+
       eiInvalidStringEscape: (EscapeChar: AnsiChar);
+
       eiExpectedIdentifier: (ExpectedIdentifier: TIdentifierType; FoundIdentifier: TIdentifierType);
+
       eiConvertType: (FromType, ToType: PType);
   end;
 
@@ -121,12 +137,34 @@ function HashString(Text: PAnsiChar): TParserHash;
 
 procedure Init;
 
+function ComparePChar(Start, Stop: PAnsiChar; Str: PAnsiChar): Boolean; inline;
+
 implementation
 
-uses Dialogs, ScannerKeywordsJumpTable, ScannerHandlers;
+uses Dialogs, ScannerKeywordsJumpTable, ScannerHandlers, TypesUtils;
 
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
+
+function ComparePChar(Start, Stop: PAnsiChar; Str: PAnsiChar): Boolean;
+begin
+  Result := False;
+  
+  while Start^ = Str^ do
+    begin
+      if Cardinal(Start) >= Cardinal(Stop) then
+        Exit;
+        
+      Inc(Start);
+      Inc(Str);
+
+      if Str^ = #0 then
+        begin
+          Result := True;
+          Exit;
+        end;
+    end;
+end;
 
 { Error handling }
 
@@ -236,7 +274,7 @@ begin
       Exit;
     end;
 
-  //Token.Error := True;
+  Token.Error := True;
 
   if Token.Document.Owner <> nil then
     ChildErrors(Token.Document.Owner, Token.Document);
@@ -302,7 +340,20 @@ begin
     eiLostLocal: Result := 'Local variable declarations must be at the start of a function';
     eiInvalidOctal: Result := 'Invalid octal number';
     eiChildErrors: Result := PDocumentInfo(Child).Name + ' has errors';
-    eiRedeclared: Result := '''' + Identifier.Name + ''' has already been declared';
+    eiConstantLocal: Result := 'Local variables can not be constant';
+    eiRecursiveLocals: Result := 'Recursive function calls are not permitted in local declarations';
+    eiCodeParams: Result := 'Function ''' + Identifier.Name + ''' passed as code can''t have parameters';
+    eiRedeclared: Result := '''' + Identifier.Name + ''' has already been declared as a ' + InfoPointer;
+    eiArrayInitiation: Result := 'Array variable ''' + Identifier.Name + ''' can''t be initialized';
+    eiUsedInDeclaration: Result := '''' + Identifier.Name + ''' is used in it''s own declaration';
+    eiVariableNotArray: Result := 'Variable ''' + Identifier.Name + ''' is not an array';
+    eiVariableArray: Result := 'Variable ''' + Identifier.Name + ''' is an array';
+    eiVariableInConstant: Result := 'Variable ''' + Identifier.Name + ''' is not constant';
+    eiCodeArray: Result := 'Type ''code'' can''t be used to create an array';
+    eiVariableAssignmentInConstant: Result := 'Can''t assign to variable ''' + Identifier.Name + ''' in a constant function';
+    eiFunctionInConstant: Result := 'Function ''' + Identifier.Name + ''' is not constant';
+    eiFunctionInGlobal: Result := 'User function ''' + Identifier.Name + ''' can''t be used in globals';
+    eiUninitializedVariable: Result := '''' + Identifier.Name + ''' is used before it''s initialized';
     eiExpectedIdentifier: Result := 'Expected ''' + IdentifierName[ExpectedIdentifier] + ''', but found ''' + InfoPointer + ''' (' + IdentifierName[FoundIdentifier] + ')';
     eiUndeclaredIdentifier: Result := 'Undeclared identifier ''' + Info + '''';
     eiConstantNeedInit: Result := 'Constant variable ''' + Info + ''' needs initialization';
@@ -314,7 +365,7 @@ begin
     eiInvalidRawId: Result := 'Raw id with size ' + IntToStr(RawIdLength) + ' found, but the length must be 4 or 1';
     
     eiWrongReturn:
-      if PFunction(Identifier).Header.Returns = nil then
+      if PFunction(Identifier).Header.Returns = NothingType then
         Result := 'Cannot return a value from function ''' + Identifier.Name + ''''
       else
         Result := 'Cannot return without a value from function ''' + Identifier.Name + '''';

@@ -11,7 +11,9 @@ implementation
 
 uses SysUtils, Blocks, TypesUtils;
 
-var NativeDocument: TDocument;
+var
+  NativeDocument: TDocument;
+  NullTypeList: TList;
 
 procedure DeclareType(var AType: PType; Name: PAnsiChar); inline;
 var
@@ -28,11 +30,18 @@ begin
   NativeDocument.Add(AType);
 end;
 
-var
-  NullTypeVar: TType;
-  NothingTypeVar: TType;
+procedure DeclareNullType(var AType: PType; Name: PAnsiChar); inline;
+begin
+  New(AType);
+  AType.Extends := nil;
+  AType.Next := nil;
+  AType.IdentifierType := itType;
+  AType.Name := 'null';
+end;
 
 initialization
+  NullTypeList := TList.Create;
+  
   DocumentList := TList.Create;
   DocumentList.Add(@NativeDocument);
   NativeDocument.Init;
@@ -44,20 +53,24 @@ initialization
   DeclareType(BooleanType, 'boolean');
   DeclareType(CodeType, 'code');
 
-  NullType := @NullTypeVar;
-  NullType.Extends := nil;
-  NullType.Next := nil;
-  NullType.IdentifierType := itType;
-  NullType.Name := 'null';
+  DeclareType(HandleConstant, 'null');
+  DeclareType(StringConstant, 'string constant');
+  DeclareType(IntegerConstant, 'integer constant');
+  DeclareType(RealConstant, 'real constant');
+  DeclareType(BooleanConstant, 'boolean constant');
+  DeclareType(CodeConstant, 'code constant');
 
-  NothingType := @NothingTypeVar;
-  NothingType.Extends := nil;
-  NothingType.Next := nil;
-  NothingType.IdentifierType := itType;
-  NothingType.Name := 'nothing';
+  DeclareType(NothingType, 'nothing');
 
 finalization
   DocumentList.Free;
   NativeDocument.Free;
 
+  while NullTypeList.Count > 0 do
+    begin
+      PType(NullTypeList[0]).Free;
+      NullTypeList.Delete(0);
+    end;
+
+  NullTypeList.Free;
 end.

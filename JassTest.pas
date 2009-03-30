@@ -125,7 +125,7 @@ begin
 
   Scintilla.GotoLine(ErrorInfo.Line);
   Scintilla.GotoPos(Cardinal(Scintilla.GetCurrentPos) + Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart));
-  Scintilla.SetFocus;
+  Scintilla.SetSelectionEnd(Cardinal(Scintilla.GetCurrentPos) + ErrorInfo.Length);
 end;
 
 procedure TJassForm.FormCreate(Sender: TObject);
@@ -249,7 +249,6 @@ end;
 
 procedure ApplyErrors(const Document: TDocumentInfo; ListBox: TCustomListBox); overload;
 var
-  i: Integer;
   ErrorInfo: PErrorInfo;
 begin
   ListBox.Items.BeginUpdate;
@@ -257,19 +256,21 @@ begin
   {$OVERFLOWCHECKS OFF}
 
   ErrorInfo := Document.Errors;
-  i := 0;
 
   while ErrorInfo <> nil do
     begin
-      if i > 150 then
+      {if i > 150 then
         begin
           ListBox.Items.Add('Too many errors, trimmed');
           ListBox.Items.EndUpdate;
           Exit;
-        end;
-      ListBox.Items.InsertObject(0, 'Error [' + IntToStr(ErrorInfo.Line + 1) + ': ' + IntToStr(Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart) + 1) + '] ' + ErrorInfo.ToString, TObject(ErrorInfo));
-
-      Inc(i);
+        end;}
+      try
+        ListBox.Items.InsertObject(0, 'Error [' + IntToStr(ErrorInfo.Line + 1) + ': ' + IntToStr(Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart) + 1) + '] ' + ErrorInfo.ToString, TObject(ErrorInfo));
+      except
+        on E:Exception do
+          ShowMessage(E.Message);
+      end;
 
       ErrorInfo := ErrorInfo.Next;
     end;
@@ -279,7 +280,6 @@ end;
 
 procedure ApplyErrors(const Document: TDocumentInfo; Scintilla: TScintillaBase);
 var
-  i: Integer;
   ErrorInfo: PErrorInfo;
 begin
   Scintilla.IndicSetStyle(9, 1);
@@ -288,16 +288,15 @@ begin
   Scintilla.IndicatorClearRange(0, Scintilla.GetLength);
 
   ErrorInfo := Document.Errors;
-  i := 0;
 
   while ErrorInfo <> nil do
     begin
-      if i > 10000 then
-        Exit;
-            
-      Scintilla.IndicatorFillRange(Cardinal(ErrorInfo.Start) - Cardinal(Document.Input), ErrorInfo.Length);
-
-      Inc(i);
+      try
+        Scintilla.IndicatorFillRange(Cardinal(ErrorInfo.Start) - Cardinal(Document.Input), ErrorInfo.Length);
+      except
+        on E:Exception do
+          ShowMessage(E.Message);
+      end;
 
       ErrorInfo := ErrorInfo.Next;
     end;
@@ -325,6 +324,8 @@ end;
 procedure TJassForm.Button2Click(Sender: TObject);
 var Data: String;
 begin
+try
+
   if Doc <> nil then
     begin
       DocInfo.Free;
@@ -335,6 +336,8 @@ begin
       DocInfo := nil;
       Doc := nil;
     end;
+
+
     
   Data := Scintilla.Lines.Text;
 
@@ -358,6 +361,10 @@ begin
   ApplyErrors(DocInfo^, Scintilla);
 
   Label2.Caption := 'GUI: ' + GetTime + ' ms';
+      except
+      on E:Exception do
+        ShowMessage(E.Message);
+    end;
 end;
 
 procedure TJassForm.Button3Click(Sender: TObject);

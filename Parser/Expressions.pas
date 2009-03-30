@@ -5,15 +5,14 @@ interface
 uses Scopes, SysUtils, Blocks, Scanner, Tokens, TypesUtils;
 
 var
-  ConstantExpression: Boolean;
-
-function ParseConstantExpression(var Range: TRangeInfo): PType;
+  CurrentConstant: Boolean = False;
+  CurrentGlobal: Boolean = False;
+  CurrentLocal: Boolean = False;
+  CurrentDeclaration: PIdentifier = nil;
 
 function ParseFunctionCall(var Range: TRangeInfo; Func: PFunction): PType;
-//procedure ParseConstantFunctionCall(Func: PFunction);
 
 function ParseVariable(var Range: TRangeInfo; Variable: PVariable): PType;
-//procedure ParseVariable(Func: PFunction);
 
 procedure ParseRootExpression(ExpectedType: PType); inline;
 function ParseExpression(var Range: TRangeInfo): PType;
@@ -27,6 +26,31 @@ var
 begin
   VarToken := Token;
 
+  if Variable <> nil then
+    begin
+      if CurrentDeclaration = Variable then
+        with TErrorInfo.Create(eiUsedInDeclaration)^ do
+          begin
+            Identifier := Variable;
+
+            Report;
+          end
+      else if (not Variable.Initialized) and (vfLocal in Variable.Flags) then
+        with TErrorInfo.Create(eiUninitializedVariable)^ do
+          begin
+            Identifier := Variable;
+
+            Report;
+          end
+      else if CurrentConstant and (not (vfConstant in Variable.Flags)) then
+        with TErrorInfo.Create(eiVariableInConstant)^ do
+          begin
+            Identifier := Variable;
+
+            Report;
+          end
+    end;
+
   Next(Range);
 
   if Variable <> nil then
@@ -36,12 +60,27 @@ begin
 
   if Matches(ttSquareOpen, Range) then
     begin
+      if (Variable <> nil) and (not (vfArray in Variable.Flags)) then
+        with TErrorInfo.Create(eiVariableNotArray, VarToken)^ do
+          begin
+            Identifier := Variable;
+
+            Report;
+          end;
+          
       RangeInfo.Create;
       ParseExpression(RangeInfo);
       Range.Expand(RangeInfo);
 
       Match(ttSquareClose, Range);
-    end;
+    end
+  else if (Variable <> nil) and (vfArray in Variable.Flags) then
+    with TErrorInfo.Create(eiVariableArray, VarToken)^ do
+      begin
+        Identifier := Variable;
+
+        Report;
+      end;
 end;
 
 function FindParamType(Func: PFunction; ParamCount: Integer): PType; inline;
@@ -63,6 +102,26 @@ var ParamCount: Integer;
   RangeInfo: TRangeInfo;
 begin
   FuncToken := Token;
+
+  if Func <> nil then
+    begin
+      if CurrentGlobal and (not Func.Native) then
+        with TErrorInfo.Create(eiFunctionInGlobal)^ do
+          begin
+            Identifier := Func;
+
+            Report;
+          end
+      else if CurrentConstant and (not Func.Constant) then
+        with TErrorInfo.Create(eiFunctionInConstant)^ do
+          begin
+            Identifier := Func;
+
+            Report;
+          end
+      else if CurrentLocal and (Func = CurrentFunc) then
+        TErrorInfo.Create(eiRecursiveLocals)^.Report;
+    end;
 
   Next(Range);
 
@@ -149,25 +208,31 @@ begin
 
     ttFunction:
       begin
-        Next(Range);
+        RangeInfo.Create;
+        Next(RangeInfo);
 
         if Token.Token = ttIdentifier then
           begin
             Range.Expand;
-            
-            CurrentScope.FindFunction;
+
+            Identifier := CurrentScope.FindFunction;
+            with PFunction(Identifier)^ do
+              if Length(Header.Parameters) <> 0 then
+              
+              
           end
         else
           Match(ttIdentifier);
-
-        Result := CodeType;
+          
+        Range.Expand(RangeInfo);
+        Result := CodeConstant;
       end;
     
     ttNull:
       begin
         Next(Range);
 
-        Result := NullType;
+        Result := HandleConstant;
       end;
 
     ttIdentifier:
@@ -177,7 +242,14 @@ begin
         Identifier := CurrentScope^.Find(True);
         
         if Identifier = nil then
-          Unexpected
+          with TErrorInfo.Create(eiUndeclaredIdentifier)^ do
+            begin
+              Info := Token.StrNew;
+              
+              Report;
+
+              Scanner.Next(Range);
+            end
         else
           case Identifier.IdentifierType of
             //itType: ParseLocal(PType(Identifier));
@@ -191,28 +263,28 @@ begin
       begin
         Next(Range);
 
-        Result := BooleanType;
+        Result := BooleanConstant;
       end;
       
     ttNumber, ttOctal, ttHex, ttRawId:
       begin
         Next(Range);
 
-        Result := IntegerType;
+        Result := IntegerConstant;
       end;
 
     ttString:
       begin
         Next(Range);
 
-        Result := StringType;
+        Result := StringConstant;
       end;
 
     ttReal:
       begin
         Next(Range);
 
-        Result := RealType;
+        Result := RealConstant;
       end;
 
     ttParentOpen:
@@ -249,7 +321,7 @@ var
 
     Base := NewType.BaseType;
 
-    if not ((Base = RealType) or (Base = IntegerType) or (AddOp and (Base = StringType))) then
+    if not ((Base = IntegerConstant) or (Base = IntegerType) or (Base = RealConstant) or (Base = RealType) or (AddOp and ((Base = StringConstant) or (Base = StringType)))) then
       with TErrorInfo.Create(eiArithmetic, RangeInfo)^ do
         begin
           Identifier := NewType;
@@ -263,8 +335,7 @@ var
 
     ResultBase := Result.BaseType;
 
-    if ((Base = IntegerType) and (ResultBase = RealType)) or
-      ((Base = RealType) and (ResultBase = IntegerType)) then
+    if CompitableOperators(Base, ResultBase) then
       Exit;
 
     if Base <> ResultBase then
@@ -337,11 +408,7 @@ var
 
     CompareBase := CompareType.BaseType;
 
-    if ((Base = NullType) and (CompareBase = HandleType)) or
-      ((Base = NullType) and (CompareBase = StringType)) or
-      ((Base = NullType) and (CompareBase = CodeType)) or
-      ((Base = IntegerType) and (CompareBase = RealType)) or
-      ((Base = RealType) and (CompareBase = IntegerType)) then
+    if CompitableOperators(Base, CompareBase) then
       Exit;
 
     if Base <> CompareBase then
@@ -385,17 +452,6 @@ begin
     end;
 
   Range.Expand(RangeInfo);
-end;
-
-function ParseConstantExpression(var Range: TRangeInfo): PType;
-var Old: Boolean;
-begin
-  Old := ConstantExpression;
-  ConstantExpression := True;
-
-  Result := ParseExpression(Range);
-
-  ConstantExpression := Old;
 end;
 
 function ParseExpression(var Range: TRangeInfo): PType;

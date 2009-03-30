@@ -49,18 +49,22 @@ type
                 ttTakes, ttReturns, ttNothing,
                 ttConstant, ttNative,
                 ttType, ttExtends, ttArray,
-                ttLibrary, ttLibrary_Once, ttEndLibrary, ttRequires, ttNeeds, ttUses, ttInitializer,
                 ttSet, ttCall,
                 ttAnd, ttNot, ttOr,
+                ttReturn, ttLocal,
+                ttIf, ttEndIf, ttThen, ttElse, ttElseIf,
+                ttLoop, ttEndLoop, ttExitwhen,
+
+                {$IFDEF VJASS}
+                ttLibrary, ttLibrary_Once, ttEndLibrary, ttRequires, ttNeeds, ttUses, ttInitializer,
                 ttScope, ttEndScope,
                 ttInterface, ttEndInterface, ttDefaults,
                 ttStruct, ttEndStruct,
                 ttMethod, ttEndMethod, ttOperator,
-                ttReturn, ttLocal,
-                ttIf, ttEndIf, ttThen, ttElse, ttElseIf,
-                ttLoop, ttEndLoop, ttExitwhen,
                 ttPrivate, ttPublic, ttStub, ttStatic,
                 ttDelegate, ttKeyword, ttReadOnly,
+                {$ENDIF}
+
                 ttDebug
                 );
 
@@ -111,18 +115,24 @@ const
       'takes', 'returns', 'nothing',
       'constant', 'native',
       'type', 'extends', 'array',
-      'library', 'library_once', 'endlibrary', 'requires', 'needs', 'uses', 'initializer',
+
       'set', 'call',
       'and', 'not', 'or',
+
+      'return', 'local',
+      'if', 'endif', 'then', 'else', 'elseif',
+      'loop', 'endloop', 'exitwhen',
+      
+      {$IFDEF VJASS}
+      'library', 'library_once', 'endlibrary', 'requires', 'needs', 'uses', 'initializer',
       'scope', 'endscope',
       'interface', 'endinterface', 'defaults',
       'struct', 'endstruct',
       'method', 'endmethod', 'operator',
-      'return', 'local',
-      'if', 'endif', 'then', 'else', 'elseif',
-      'loop', 'endloop', 'exitwhen',
       'private', 'public', 'stub', 'static',
       'delegate', 'keyword', 'readonly',
+      {$ENDIF}
+
       'debug'
     );
 

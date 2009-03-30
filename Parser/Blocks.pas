@@ -14,7 +14,7 @@ procedure ParseGlobals;
 procedure ParseDocument(var ADocument: TDocument);
 
 const
-  BlockEnders = [ttEnd, ttEndFunction, ttGlobals, ttFunction, ttNative, ttConstant];
+  BlockEnders = [ttEnd, ttEndFunction, ttGlobals, ttFunction, ttNative];
 
 var
   CurrentDocument: PDocument;
@@ -29,36 +29,52 @@ procedure ParseGlobal;
 var GlobalType: PType;
   Global: PVariable;
   IsArray: Boolean;
-  IsConstant: Boolean;
   GlobalInfo: TTokenInfo;
 begin
-  IsConstant := Matches(ttConstant);
+  CurrentConstant := Matches(ttConstant);
 
   GlobalType := CurrentScope.FindType;
 
   IsArray := Matches(ttArray);
 
-  if IsConstant then
+  if CurrentConstant or IsArray then
     GlobalInfo := Token;
 
   Global := CurrentScope.DeclareVariable;
   Global.VariableType := GlobalType;
-  Global.Flags := [];
 
   if IsArray then
     Include(Global.Flags, vfArray);
 
-  if IsConstant then
+  if CurrentConstant then
     Include(Global.Flags, vfConstant);
 
   if Matches(ttAssign) then
-      ParseRootExpression(GlobalType)
-  else if IsConstant then
+    begin
+      if IsArray then
+        with TErrorInfo.Create(eiArrayInitiation, GlobalInfo)^ do
+          begin
+            Identifier := Global;
+            
+            Report;
+          end;
+
+      CurrentDeclaration := Global;
+      CurrentGlobal := True;
+
+      ParseRootExpression(GlobalType);
+
+      CurrentGlobal := False;
+      CurrentDeclaration := nil;
+    end
+  else if CurrentConstant then
     with TErrorInfo.Create(eiConstantNeedInit, GlobalInfo)^ do
       begin
         Info := GlobalInfo.StrNew;
         Report;
-      end;     
+      end;
+
+  CurrentConstant := False;
 
   EndOfLine;
 end;
@@ -118,7 +134,8 @@ begin
         ParamType := CurrentScope.FindType;
         Header.Parameters[i] := CurrentScope.DeclareVariable;
         Header.Parameters[i].VariableType := ParamType;
-
+        Header.Parameters[i].Initialized := True;
+        
         More := Token.Token = ttComma;
 
         if More then
@@ -137,12 +154,11 @@ end;
 
 procedure ParseFunction;
 var
-  IsConstant: Boolean;
   IsNative: Boolean;
   Func: PFunction;
   Scope: PScope;
 begin
-  IsConstant := Matches(ttConstant);
+  CurrentConstant := Matches(ttConstant);
 
   IsNative := Matches(ttNative);
   
@@ -151,7 +167,7 @@ begin
 
   Func := CurrentScope.DeclareFunction;
   Func.Native := IsNative;
-  Func.Constant := IsConstant;
+  Func.Constant := CurrentConstant;
 
   CurrentFunc := Func;
 
@@ -159,6 +175,7 @@ begin
   CurrentScope := Func.Scope;
   CurrentLoop := 0;
   NoLocals := False;
+  NoReturn := True;
 
   ParseHeader(Func.Header);
 
@@ -167,9 +184,13 @@ begin
       while not (Token.Token in BlockEnders) do
         ParseStatement;
 
+      if NoReturn and (Func.Header.Returns <> nil) and (Func.Header.Returns <> NothingType) then
+        Match(ttReturn);
+
       Match(ttEndFunction);
     end;
 
+  CurrentConstant := False;
   CurrentScope := Scope;
   CurrentFunc := nil;
   CurrentLoop := 0;

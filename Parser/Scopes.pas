@@ -28,13 +28,14 @@ type
     function BaseType: PType; inline;
   end;
 
-  TVariableFlag = (vfArray, vfParameter, vfConstant);
+  TVariableFlag = (vfArray, vfParameter, vfConstant, vfLocal);
   TVariableFlags = set of TVariableFlag;
 
 
   TVariable = object(TIdentifier)
     Flags: TVariableFlags;
     VariableType: PType;
+    Initialized: Boolean;
   end;
 
   TFunctionHeader = record
@@ -114,8 +115,6 @@ end;
 procedure TScope.Add(Identifier: PIdentifier);
 var
   Current, Dummy: PIdentifier;
-  Length: Cardinal;
-  Start: PAnsiChar;
   Hash: TParserHash;
 begin
   Hash := HashString(Identifier.Name);
@@ -124,14 +123,12 @@ begin
 
   if Current <> nil then
     begin
-      Length := StrLen(Identifier.Name);
-      Start := Identifier.Name;
 
       repeat
-        if StrLComp(Start, Current.Name, Length) = 0 then
+        if Current.Name = Identifier.Name then
           begin
             Identifier.Free;
-            raise Exception.Create(Start + ' is already declared');
+            raise Exception.Create(Identifier.Name + ' is already declared');
           end;
 
         Dummy := Current.Next;
@@ -154,6 +151,89 @@ begin
     end;
 end;
 
+
+procedure TScope.Declare(Identifier: PIdentifier);
+var
+  Current, Dummy: PIdentifier;
+
+begin
+  if not Match(ttIdentifier, False) then
+    begin
+      Identifier.Name := nil;
+      Identifier.Next := FIncomplete;
+      FIncomplete := Identifier;
+      
+      Exit;
+    end;
+
+  if Parent <> nil then
+    begin
+      Current := Parent.Find(True);
+
+      if (Current <> nil) and ((Current.IdentifierType <> itVariable) or (vfArray in PVariable(Current).Flags)) then
+        begin
+          with TErrorInfo.Create(eiRedeclared)^ do
+            begin
+              Identifier := Current;
+              InfoPointer := IdentifierName[Current.IdentifierType];
+
+              Report;
+            end;
+        end;
+    end;
+
+  Current := Find(False);
+
+  if (Current <> nil) then
+    begin
+      with TErrorInfo.Create(eiRedeclared)^ do
+        begin
+          Identifier := Current;
+          InfoPointer := IdentifierName[Current.IdentifierType];
+          
+          Report;
+        end;
+
+      Identifier.Name := nil;
+      Identifier.Next := FIncomplete;
+      FIncomplete := Identifier;
+
+      Next;
+      Exit;
+    end;
+    
+  Current := FBuckets[Token.Hash];
+
+  if Current <> nil then
+    begin
+      repeat
+        Dummy := Current.Next;
+
+        if Dummy = nil then
+          begin
+            Identifier.Name := Token.StrNew;
+            Current.Next := Identifier;
+            Identifier.Next := nil;
+
+            Next;
+            Exit;
+          end;
+
+        Current := Dummy;
+
+      until False;
+    end
+  else
+    begin
+      Identifier.Name := Token.StrNew;
+      FBuckets[Token.Hash] := Identifier;
+      Identifier.Next := nil;
+      
+      Next;
+    end;
+end;
+
+{
 procedure TScope.Declare(Identifier: PIdentifier);
 var
   Current, Dummy: PIdentifier;
@@ -183,6 +263,7 @@ begin
           begin
             ErrorInfo := TErrorInfo.Create(eiRedeclared);
             ErrorInfo.Identifier := Current;
+            ErrorInfo.InfoPointer := IdentifierName[Current.IdentifierType];
             ErrorInfo.Report;
 
             Identifier.Name := nil;
@@ -218,11 +299,12 @@ begin
       Next;
     end;
 end;
-
+}
 function TScope.DeclareType: PType;
 begin
   New(Result);
   Result.IdentifierType := itType;
+  Result.Extends := nil;
   Declare(Result);
 end;
 
@@ -230,6 +312,9 @@ function TScope.DeclareVariable: PVariable;
 begin
   New(Result);
   Result.IdentifierType := itVariable;
+  Result.Initialized := False;
+  Result.VariableType := nil;
+  Result.Flags := [];
   Declare(Result);
 end;
 
@@ -250,20 +335,20 @@ function TScope.Find(Recursive: Boolean): PIdentifier;
 var
   i: Integer;
   Current: PIdentifier;
-  Length: Cardinal;
-  Start: PAnsiChar;
+  Start, Stop: PAnsiChar;
 begin
   Current := FBuckets[Token.Hash];
 
   if Current <> nil then
     begin
-      Length := Token.Length;
       Start := Token.Start;
+      Stop := Token.Stop;
 
       repeat
-        if StrLComp(Start, Current.Name, Length) = 0 then
+        if ComparePChar(Start, Stop, Current.Name) then
           begin
             Result := Current;
+            
             Exit;
           end;
 
@@ -273,7 +358,7 @@ begin
 
   Result := nil;
 
-  if (Result = nil) and Recursive then
+  if Recursive then
     begin
       if Parent <> nil then
         Result := Parent.Find(True)
@@ -310,6 +395,8 @@ begin
         ErrorInfo.InfoPointer := Result.Name;
 
         ErrorInfo.Report;
+
+        Result := nil;
       end;
 end;
 

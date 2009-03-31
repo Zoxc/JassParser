@@ -24,7 +24,7 @@ var
 
 implementation
 
-uses Dialogs, Statements, Expressions, Documents, TypesUtils;
+uses Statements, Expressions, Documents, TypesUtils;
 
 procedure ParseGlobal;
 var GlobalType: PType;

@@ -144,7 +144,7 @@ function ComparePChar(Start, Stop: PAnsiChar; Str: PAnsiChar): Boolean; inline;
 
 implementation
 
-uses Dialogs, ScannerKeywordsJumpTable, ScannerHandlers, TypesUtils;
+uses ScannerKeywordsJumpTable, ScannerHandlers, TypesUtils;
 
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}

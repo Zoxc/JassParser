@@ -30,7 +30,7 @@ procedure HexProc; inline;
  
 implementation
 
-uses Scanner, Tokens, Dialogs;
+uses Scanner, Tokens;
 
 procedure Single(TokenType: TTokenType); inline;
 begin

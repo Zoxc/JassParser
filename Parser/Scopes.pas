@@ -78,7 +78,7 @@ const
 
 implementation
 
-uses Windows, SysUtils, Dialogs, Scanner, Documents, Blocks;
+uses SysUtils, Scanner, Documents, Blocks;
 
 procedure TIdentifier.Free;
 begin

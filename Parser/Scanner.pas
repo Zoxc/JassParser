@@ -37,7 +37,7 @@ type
   TDocumentInfo = record
     Name: String;
     Children: PDocumentInfo;
-    Errors: PErrorInfo;
+    Errors, LastError: PErrorInfo;
     Start: PAnsiChar;
     Stop: PAnsiChar;
     Owner: PDocumentInfo;
@@ -71,7 +71,7 @@ type
 
     Info, InfoPointer: PAnsiChar;
 
-    Next: PErrorInfo;
+    Next, Prev: PErrorInfo;
 
     class function Create(const ErrorType: TErrorType): PErrorInfo; overload; static;
     class function Create(const ErrorType: TErrorType; const Token: TTokenInfo): PErrorInfo; overload; static;
@@ -79,6 +79,8 @@ type
     procedure Free;
 
     procedure Report;
+    procedure Pull;
+    
     function ToString: String;
 
     case ErrorType: TErrorType of
@@ -222,9 +224,13 @@ begin
   ErrorInfo.Length := GetLength(Child.Start, Child.Stop);
   ErrorInfo.Line := Child.Line;
   ErrorInfo.LineStart := Child.LineStart;
-  
-  ErrorInfo.Next := Document.Errors;
-  Document.Errors := ErrorInfo;
+
+  if Document.Errors = nil then
+    Document.Errors := ErrorInfo
+  else
+    Document.LastError.Next := ErrorInfo;
+
+  Document.LastError := ErrorInfo;
 
   if Document.Owner <> nil then
     ChildErrors(Document.Owner, Document);
@@ -266,6 +272,23 @@ end;
 
 { TErrorInfo }
 
+procedure TErrorInfo.Pull;
+begin
+  if Token.Document.Errors = @Self then
+    Token.Document.Errors := Next;
+
+  if Token.Document.LastError = @Self then
+    Token.Document.LastError := Prev;
+
+  if Prev <> nil then
+    Prev.Next := Next;
+
+  if Next <> nil then
+    Next.Prev := Prev;
+
+  Free;
+end;
+
 procedure TErrorInfo.Report;
 begin
   if Token.Error then
@@ -276,11 +299,20 @@ begin
 
   Token.Error := True;
 
-  if Token.Document.Owner <> nil then
-    ChildErrors(Token.Document.Owner, Token.Document);
+  //if Token.Document.Owner <> nil then
+   // ChildErrors(Token.Document.Owner, Token.Document);
 
-  Next := Token.Document.Errors;
-  Token.Document.Errors := @Self;
+  Next := nil;
+
+  if Token.Document.Errors = nil then
+    Token.Document.Errors := @Self;
+
+  Prev := Token.Document.LastError;
+
+  if Token.Document.LastError <> nil then
+    Token.Document.LastError.Next := @Self;
+  
+  Token.Document.LastError := @Self;
 end;
 
 class function TErrorInfo.Create(const ErrorType: TErrorType; const Range: TRangeInfo): PErrorInfo;
@@ -415,6 +447,7 @@ begin
   New(Document);
   Document.Children := nil;
   Document.Errors := nil;
+  Document.LastError := nil;
   Document.Input := Text;
   Document.Owner := nil;
   Document.Name := 'Test';
@@ -595,6 +628,7 @@ begin
   Doc.Name := Name;
   Doc.Children := nil;
   Doc.Errors := nil;
+  Doc.LastError := nil;
   Doc.Start := Token.Start;
   Doc.Stop := Stop;
   Doc.Owner := Document;

@@ -24,7 +24,7 @@ var
 function CompitableOperators(AFromType, AToType: PType): Boolean; inline;
 function CompitableBaseTypes(AFromType, AToType: PType): Boolean; inline;
 
-procedure Compitable(AFromType, AToType: PType; var Range: TRangeInfo); inline;
+function Compitable(AFromType, AToType: PType; var Range: TRangeInfo; Weak: Boolean = False): PErrorInfo; inline;
 function CompitableBoolean(AType: PType; var Range: TRangeInfo): PType; inline;
 function CompitableArithmetic(AType: PType; var Range: TRangeInfo): PType;
 
@@ -49,8 +49,10 @@ begin
     ((AFromType = BooleanConstant) and (AToType = BooleanType)) or
     ((AFromType = StringConstant) and (AToType = StringType)) or
     ((AFromType = IntegerConstant) and (AToType = IntegerType)) or
+    ((AFromType = IntegerConstant) and (AToType = RealConstant)) or
     ((AFromType = IntegerConstant) and (AToType = RealType)) or
     ((AFromType = RealConstant) and (AToType = RealType)) or
+    ((AFromType = IntegerType) and (AToType = RealConstant)) or
     ((AFromType = IntegerType) and (AToType = RealType)) then
       Result := True;
 end;
@@ -100,9 +102,11 @@ begin
       end;
 end;
 
-procedure Compitable(AFromType, AToType: PType; var Range: TRangeInfo);
+function Compitable(AFromType, AToType: PType; var Range: TRangeInfo; Weak: Boolean): PErrorInfo;
 var BaseFromType, BaseToType: PType;
 begin
+  Result := nil;
+  
   if (AFromType = nil) or (AToType = nil) or (AFromType = AToType) then
       Exit;
       
@@ -118,16 +122,16 @@ begin
 
   BaseToType := AToType.BaseType;
 
+  if Weak and (BaseFromType = BaseToType) then
+      Exit;
+
   if CompitableBaseTypes(BaseFromType, BaseToType) then
       Exit;
 
-  with TErrorInfo.Create(eiConvertType, Range)^ do
-    begin
-      FromType := AFromType;
-      ToType := AToType;
-
-      Report;
-    end;
+  Result := TErrorInfo.Create(eiConvertType, Range);
+  Result.FromType := AFromType;
+  Result.ToType := AToType;
+  Result.Report;
 end;
 
 end.

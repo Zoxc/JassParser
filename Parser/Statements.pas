@@ -2,18 +2,19 @@ unit Statements;
 
 interface
 
-uses SysUtils;
+uses SysUtils, Scanner;
 
 procedure ParseStatement;
 
 var
   CurrentLoop: Integer;
+  CurrentReturnError: PErrorInfo;
   NoLocals: Boolean;
   NoReturn: Boolean;
 
 implementation
 
-uses Blocks, Scopes, Scanner, Tokens, Expressions, TypesUtils;
+uses Blocks, Scopes, Tokens, Expressions, TypesUtils;
 
 procedure ParseLocal(Identifier: PType);
 var LocalType: PType;
@@ -97,24 +98,14 @@ begin
   else
     Variable := CurrentScope.FindVariable;
 
-  if (Variable <> nil) and (not (vfLocal in Variable.Flags)) then
-    begin
-      if CurrentConstant then
-        with TErrorInfo.Create(eiVariableAssignmentInConstant, VarToken)^ do
-          begin
-            Identifier := Variable;
+  if (Variable <> nil) and CurrentConstant and (not (vfLocal in Variable.Flags)) and (not (vfParameter in Variable.Flags)) then
+    with TErrorInfo.Create(eiVariableAssignmentInConstant, VarToken)^ do
+      begin
+        Identifier := Variable;
 
-            Report;
-          end
-      else if vfConstant in Variable.Flags then
-        with TErrorInfo.Create(eiVariableInConstant, VarToken)^ do
-          begin
-            Identifier := Variable;
-
-            Report;
-          end
-    end;
-
+        Report;
+      end;
+      
   if Matches(ttSquareOpen) then
     begin
       if (Variable <> nil) and (not (vfArray in Variable.Flags)) then
@@ -186,8 +177,12 @@ end;
 procedure ParseReturn;
 var
   ReturnToken: TTokenInfo;
+  Range: TRangeInfo;
 begin
   ReturnToken := Token;
+
+  if CurrentReturnError <> nil then
+   CurrentReturnError.Pull;
 
   NoReturn := False;
       
@@ -210,11 +205,13 @@ begin
             Identifier := CurrentFunc;
             Report;
           end;
-          
+
+      Range.Create;
+
       if CurrentFunc.Header.Returns = NothingType then
-        ParseRootExpression(nil)
+        CurrentReturnError := Compitable(ParseExpression(Range), nil, Range, True)
       else
-        ParseRootExpression(CurrentFunc.Header.Returns)
+        CurrentReturnError := Compitable(ParseExpression(Range), CurrentFunc.Header.Returns, Range, True);
     end;
 
   EndOfLine;

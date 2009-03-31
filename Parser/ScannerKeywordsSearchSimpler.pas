@@ -1,4 +1,4 @@
-unit ScannerKeywordsSearch;
+unit ScannerKeywordsSearchSimpler;
 
 interface
 

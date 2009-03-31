@@ -2,11 +2,12 @@ unit Blocks;
 
 interface
 
-uses SysUtils, Scopes, Classes, Tokens;
+uses SysUtils, Scopes, Classes, Tokens, Scanner;
 
 type
   PDocument = ^TDocument;
   TDocument = object(TScope)
+    Info: PDocumentInfo;
   end;
 
 procedure ParseType;
@@ -23,7 +24,7 @@ var
 
 implementation
 
-uses Scanner, Dialogs, Statements, Expressions, Documents, TypesUtils;
+uses Dialogs, Statements, Expressions, Documents, TypesUtils;
 
 procedure ParseGlobal;
 var GlobalType: PType;
@@ -135,6 +136,7 @@ begin
         Header.Parameters[i] := CurrentScope.DeclareVariable;
         Header.Parameters[i].VariableType := ParamType;
         Header.Parameters[i].Initialized := True;
+        Header.Parameters[i].Flags := [vfParameter];
         
         More := Token.Token = ttComma;
 
@@ -174,6 +176,7 @@ begin
   Scope := CurrentScope;
   CurrentScope := Func.Scope;
   CurrentLoop := 0;
+  CurrentReturnError := nil;
   NoLocals := False;
   NoReturn := True;
 

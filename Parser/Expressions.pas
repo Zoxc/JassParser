@@ -42,13 +42,13 @@ begin
 
             Report;
           end
-      else if CurrentConstant and (not (vfConstant in Variable.Flags)) then
+      {else if CurrentConstant and (not (vfConstant in Variable.Flags)) and (not (vfLocal in Variable.Flags)) and (not (vfParameter in Variable.Flags)) then
         with TErrorInfo.Create(eiVariableInConstant)^ do
           begin
             Identifier := Variable;
 
             Report;
-          end
+          end}
     end;
 
   Next(Range);
@@ -349,7 +349,7 @@ var
           Exit;
         end;
 
-    if Base = RealType then
+    if (Base = RealType) or (Base = RealConstant) then
       Result := NewType;
   end;
 

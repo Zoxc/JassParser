@@ -220,6 +220,8 @@ begin
 
   until False;
 
+  ADocument.Info.GenerateChildErrors;
+
   CurrentDocument := nil;
   CurrentScope := nil;
 end;

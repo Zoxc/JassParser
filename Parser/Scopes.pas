@@ -63,6 +63,7 @@ type
       function DeclareVariable: PVariable;
       function DeclareFunction: PFunction;
       function Find(Recursive: Boolean = True): PIdentifier; overload;
+      function FindAbove: PIdentifier;
       function Find(IdentifierType: TIdentifierType): PIdentifier; overload;
       function FindType(DoSkip: Boolean = True): PType;
       function FindVariable(DoSkip: Boolean = True): PVariable;
@@ -166,19 +167,16 @@ begin
       Exit;
     end;
 
-  if Parent <> nil then
+  Current := FindAbove;
+
+  if (Current <> nil) and ((Current.IdentifierType <> itVariable) or (vfArray in PVariable(Current).Flags)) then
     begin
-      Current := Parent.Find(True);
-
-      if (Current <> nil) and ((Current.IdentifierType <> itVariable) or (vfArray in PVariable(Current).Flags)) then
+      with TErrorInfo.Create(eiRedeclared)^ do
         begin
-          with TErrorInfo.Create(eiRedeclared)^ do
-            begin
-              Identifier := Current;
-              InfoPointer := IdentifierName[Current.IdentifierType];
+          Identifier := Current;
+          InfoPointer := IdentifierName[Current.IdentifierType];
 
-              Report;
-            end;
+          Report;
         end;
     end;
 
@@ -331,9 +329,25 @@ begin
   Declare(Result);
 end;
 
+function TScope.FindAbove: PIdentifier;
+var i: Integer;
+begin
+  if Parent <> nil then
+    Result := Parent.Find(True)
+  else
+    begin
+      for i := 0 to DocumentList.Count - 1 do
+        begin
+          Result := PScope(DocumentList[i]).Find(False);
+          if Result <> nil then
+            Exit;
+        end;
+      Result := nil;
+    end;
+end;
+
 function TScope.Find(Recursive: Boolean): PIdentifier;
 var
-  i: Integer;
   Current: PIdentifier;
   Start, Stop: PAnsiChar;
 begin
@@ -359,19 +373,7 @@ begin
   Result := nil;
 
   if Recursive then
-    begin
-      if Parent <> nil then
-        Result := Parent.Find(True)
-      else
-        begin
-          for i := 0 to DocumentList.Count - 1 do
-            begin
-              Result := PScope(DocumentList[i]).Find(False);
-              if Result <> nil then
-                Exit;
-            end;  
-        end;
-    end;
+    Result := FindAbove;
 end;
 
 function TScope.Find(IdentifierType: TIdentifierType): PIdentifier;

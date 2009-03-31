@@ -48,6 +48,7 @@ type
 
     Input: PAnsiChar;
     procedure Free;
+    procedure GenerateChildErrors;
   end;
 
   TErrorType = (eiInvalidChars, eiNumInIdent, eiExpectedToken, eiUnexpectedToken,
@@ -462,6 +463,31 @@ begin
   Result := Document;
 
   Next;
+end;
+
+procedure TDocumentInfo.GenerateChildErrors;
+var
+  DocumentInfo: PDocumentInfo;
+begin
+  DocumentInfo := Children;
+
+  while DocumentInfo <> nil do
+    begin
+      if DocumentInfo.Errors <> nil then
+         with TErrorInfo.Create(eiChildErrors)^ do
+          begin
+            Child := DocumentInfo;
+            Start := DocumentInfo.Start;
+            Length := GetLength(DocumentInfo.Start, DocumentInfo.Stop);
+            Line := DocumentInfo.Line;
+            LineStart := DocumentInfo.LineStart;
+
+            Report;
+          end;
+
+      DocumentInfo.GenerateChildErrors;
+      DocumentInfo := DocumentInfo.Next;
+    end;
 end;
 
 procedure TDocumentInfo.Free;

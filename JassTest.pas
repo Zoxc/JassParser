@@ -346,6 +346,7 @@ try
   DocInfo := Parse(PChar(Data));
 
   New(Doc);
+  Doc.Info := DocInfo;
   Doc.Init;
 
   //while Token.Token <> ttEnd do

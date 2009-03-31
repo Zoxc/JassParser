@@ -59,11 +59,28 @@ object JassForm: TJassForm
     Anchors = [akLeft, akTop, akRight, akBottom]
     OnVScroll = ScintillaVScroll
     Lines.Strings = (
+      'type event extends handle'
+      'type unit extends widget'
       ''
-      'function Testing takes nothing returns nothing'
-      '  local real i = 8 * 9.'
+      'function Testing_A takes handle hm, widget boo returns nothing'
+      '   call Testing_B()'
+      'endfunction'
       ''
-      'endfunction')
+      'function Testing_B takes handle hm, widget boo returns nothing'
+      'endfunction'
+      ''
+      'globals    $~'#168' // Invalid characters'
+      ''
+      '    constant boolean Test'
+      '    unit array Folks'
+      ''
+      '    //! some command'
+      ''
+      '    event Test'
+      ''
+      '    widget WtfIsWidget'
+      ''
+      ' endglobals')
     EOLStyle = eolCRLF
     Indentation = [TabIndents]
     IndentWidth = 0

@@ -266,7 +266,7 @@ begin
           Exit;
         end;}
       try
-        ListBox.Items.InsertObject(0, 'Error [' + IntToStr(ErrorInfo.Line + 1) + ': ' + IntToStr(Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart) + 1) + '] ' + ErrorInfo.ToString, TObject(ErrorInfo));
+        ListBox.Items.AddObject('Error [' + IntToStr(ErrorInfo.Line + 1) + ': ' + IntToStr(Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart) + 1) + '] ' + ErrorInfo.ToString, TObject(ErrorInfo));
       except
         on E:Exception do
           ShowMessage(E.Message);

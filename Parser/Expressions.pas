@@ -96,10 +96,42 @@ begin
   Result := Func.Header.Parameters[ParamCount].VariableType;
 end;
 
+function ParseFunctionParameters(var Range: TRangeInfo; Func: PFunction): Integer;
+var
+  RangeInfo: TRangeInfo;
+begin
+  if Matches(ttParentOpen, Range) then
+    begin
+      Result := 0;
+
+      if Token.Token <> ttParentClose then
+        begin
+          RangeInfo.Create;
+          Compitable(ParseExpression(RangeInfo), FindParamType(Func, Result), RangeInfo);
+
+          Inc(Result);
+
+          while Token.Token = ttComma do
+            begin
+              Next;
+
+              RangeInfo.Create;
+              Compitable(ParseExpression(RangeInfo), FindParamType(Func, Result), RangeInfo);
+              Inc(Result);
+            end;
+        end;
+
+      Range.Expand(RangeInfo);
+
+      Match(ttParentClose, Range);
+    end
+  else
+    Result := -1;
+end;
+
 function ParseFunctionCall(var Range: TRangeInfo; Func: PFunction): PType;
 var ParamCount: Integer;
   FuncToken: TTokenInfo;
-  RangeInfo: TRangeInfo;
 begin
   FuncToken := Token;
 
@@ -130,40 +162,18 @@ begin
   else
     Result := nil;
 
-  ParamCount := 0;
+  ParamCount := ParseFunctionParameters(Range, Func);
 
-  if Match(ttParentOpen, Range) then
-    begin
-
-      if Token.Token <> ttParentClose then
+  if ParamCount = -1 then
+    TErrorInfo.Create(eiNoFunctionParams, FuncToken)^.Report
+  else
+    if (Func <> nil) and (Length(Func.Header.Parameters) <> ParamCount) then
+      with TErrorInfo.Create(eiParameterCount, FuncToken)^ do
         begin
-          RangeInfo.Create;
-          Compitable(ParseExpression(RangeInfo), FindParamType(Func, ParamCount), RangeInfo);
-          Range.Expand(RangeInfo);
-          Inc(ParamCount);
-
-          while Token.Token = ttComma do
-            begin
-              Next(Range);
-
-              RangeInfo.Create;
-              Compitable(ParseExpression(RangeInfo), FindParamType(Func, ParamCount), RangeInfo);
-              Range.Expand(RangeInfo);
-              Inc(ParamCount);
-            end;
-
+          CalledFunction := Func;
+          ParameterCount := ParamCount;
+          Report;
         end;
-        
-      Match(ttParentClose, Range);
-
-      if (Func <> nil) and (Length(Func.Header.Parameters) <> ParamCount) then
-        with TErrorInfo.Create(eiParameterCount, FuncToken)^ do
-          begin
-            CalledFunction := Func;
-            ParameterCount := ParamCount;
-            Report;
-          end;
-    end;
 end;
 {
 procedure ParseConstantFunctionCall(Func: PFunction);
@@ -180,6 +190,7 @@ end;
 function ParseFactor(var Range: TRangeInfo): PType;
 var Identifier: PIdentifier;
   RangeInfo: TRangeInfo;
+  ErrorInfo: PErrorInfo;
 begin
   Result := nil;
   
@@ -213,17 +224,26 @@ begin
 
         if Token.Token = ttIdentifier then
           begin
-            Range.Expand;
+            RangeInfo.Expand;
 
-            Identifier := CurrentScope.FindFunction;
-            with PFunction(Identifier)^ do
-              if Length(Header.Parameters) <> 0 then
+            Identifier := CurrentScope.FindFunction(False);
+
+            if Identifier <> nil then
+              begin
+                with PFunction(Identifier)^ do
+                  if Length(Header.Parameters) <> 0 then
+                    begin
+                      ErrorInfo := TErrorInfo.Create(eiCodeParams, RangeInfo);
+                      ErrorInfo.Identifier := Identifier;
+                      ErrorInfo.Report;
+                    end;
+              end;
               
-              
+            Next(RangeInfo);
           end
         else
           Match(ttIdentifier);
-          
+
         Range.Expand(RangeInfo);
         Result := CodeConstant;
       end;
@@ -249,13 +269,19 @@ begin
               Report;
 
               Scanner.Next(Range);
+
+              ParseFunctionParameters(Range, nil);
             end
         else
           case Identifier.IdentifierType of
             //itType: ParseLocal(PType(Identifier));
             itVariable: Result := ParseVariable(Range, PVariable(Identifier));
             itFunction: Result := ParseFunctionCall(Range, PFunction(Identifier));
-            else UnexpectedIdentifier(Identifier);
+            else
+              begin
+                UnexpectedIdentifier(Identifier);
+                ParseFunctionParameters(Range, nil);
+              end;
           end;
       end;
 

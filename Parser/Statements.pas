@@ -132,8 +132,8 @@ begin
 
   if Variable <> nil then
     begin
-      Variable.Initialized := True;
       ParseRootExpression(Variable.VariableType);
+      Variable.Initialized := True;
     end
   else
     ParseRootExpression(nil);

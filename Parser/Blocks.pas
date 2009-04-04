@@ -41,6 +41,9 @@ begin
   if CurrentConstant or IsArray then
     GlobalInfo := Token;
 
+  if IsArray and (GlobalType.BaseType = CodeType) then
+    TErrorInfo.Create(eiCodeArray, GlobalInfo).Report;
+
   Global := CurrentScope.DeclareVariable;
   Global.VariableType := GlobalType;
 

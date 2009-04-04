@@ -66,6 +66,8 @@ object JassForm: TJassForm
       '   call Testing_B()'
       'endfunction'
       ''
+      '##'
+      ''
       'function Testing_B takes handle hm, widget boo returns nothing'
       'endfunction'
       ''

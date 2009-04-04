@@ -218,7 +218,6 @@ begin
       '.': RealProc;
       else
         begin
-
           // Single 0 should be a regular number
           if not ((Input^ in Num) or (Input^ in Ident)) then
             begin
@@ -296,6 +295,7 @@ begin
     Inc(Input);
 
   Token.Stop := Input;
+  Token.Token := ttNone;
 
   ErrorInfo := TErrorInfo.Create(eiInvalidChars);
   ErrorInfo.Info := Token.StrNew;

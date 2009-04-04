@@ -61,7 +61,7 @@ type
     eiFunctionInGlobal, eiArrayInitiation, eiFunctionInConstant,
     eiConstantAssignment, eiVariableAssignmentInConstant, eiVariableNotArray,
     eiVariableArray, eiCodeArray, eiConstantLocal, eiCodeParams,
-    eiRecursiveLocals);
+    eiRecursiveLocals, eiNoFunctionParams);
 
   TErrorInfo = record
     Start: PAnsiChar;
@@ -374,6 +374,7 @@ begin
     eiInvalidOctal: Result := 'Invalid octal number';
     eiChildErrors: Result := PDocumentInfo(Child).Name + ' has errors';
     eiConstantLocal: Result := 'Local variables can not be constant';
+    eiNoFunctionParams: Result := 'Function calls must have a parameter list';
     eiRecursiveLocals: Result := 'Recursive function calls are not permitted in local declarations';
     eiCodeParams: Result := 'Function ''' + Identifier.Name + ''' passed as code can''t have parameters';
     eiRedeclared: Result := '''' + Identifier.Name + ''' has already been declared as a ' + InfoPointer;
@@ -396,7 +397,7 @@ begin
     eiUnterminatedString: Result := 'The string was not terminated';
     eiInvalidStringEscape: Result := '''' + EscapeChar + ''' is not a valid string escape character';
     eiInvalidRawId: Result := 'Raw id with size ' + IntToStr(RawIdLength) + ' found, but the length must be 4 or 1';
-    
+
     eiWrongReturn:
       if PFunction(Identifier).Header.Returns = NothingType then
         Result := 'Cannot return a value from function ''' + Identifier.Name + ''''

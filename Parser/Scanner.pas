@@ -61,7 +61,7 @@ type
     eiFunctionInGlobal, eiArrayInitiation, eiFunctionInConstant,
     eiConstantAssignment, eiVariableAssignmentInConstant, eiVariableNotArray,
     eiVariableArray, eiCodeArray, eiConstantLocal, eiCodeParams,
-    eiRecursiveLocals, eiNoFunctionParams);
+    eiRecursiveLocals, eiNoFunctionParams, eiImplicitIntegerConstToReal);
 
   TErrorInfo = record
     Start: PAnsiChar;
@@ -74,8 +74,10 @@ type
 
     Next, Prev: PErrorInfo;
 
+    NoReport: Boolean;
+
     class function Create(const ErrorType: TErrorType): PErrorInfo; overload; static;
-    class function Create(const ErrorType: TErrorType; const Token: TTokenInfo): PErrorInfo; overload; static;
+    class function Create(const ErrorType: TErrorType; var Token: TTokenInfo): PErrorInfo; overload; static;
     class function Create(const ErrorType: TErrorType; const Range: TRangeInfo): PErrorInfo; overload; static;
     procedure Free;
 
@@ -292,16 +294,11 @@ end;
 
 procedure TErrorInfo.Report;
 begin
-  if Token.Error then
+  if NoReport then
     begin
       Free;
       Exit;
     end;
-
-  Token.Error := True;
-
-  //if Token.Document.Owner <> nil then
-   // ChildErrors(Token.Document.Owner, Token.Document);
 
   Next := nil;
 
@@ -326,9 +323,12 @@ begin
   Result.Line := Range.Line;
   Result.LineStart := Range.LineStart;
   Result.Info := nil;
+
+  Result.NoReport := Token.Error;
+  Token.Error := True;
 end;
 
-class function TErrorInfo.Create(const ErrorType: TErrorType; const Token: TTokenInfo): PErrorInfo;
+class function TErrorInfo.Create(const ErrorType: TErrorType; var Token: TTokenInfo): PErrorInfo;
 begin
   New(Result);
   Result.ErrorType := ErrorType;
@@ -338,6 +338,9 @@ begin
   Result.Line := Token.Line;
   Result.LineStart := Token.LineStart;
   Result.Info := nil;
+
+  Result.NoReport := Token.Error;
+  Token.Error := True;
 
   if Token.Token = ttLine then
     begin
@@ -370,6 +373,7 @@ begin
     eiNumInIdent: Result := 'Identifiers can''t begin with numerals';
     eiInvalidReal: Result := 'Invalid floating point number';
     eiInvalidHex: Result := 'Invalid hex number';
+    eiImplicitIntegerConstToReal: Result := 'Expression causes run-time conversion from integer to real';
     eiLostLocal: Result := 'Local variable declarations must be at the start of a function';
     eiInvalidOctal: Result := 'Invalid octal number';
     eiChildErrors: Result := PDocumentInfo(Child).Name + ' has errors';
@@ -693,8 +697,8 @@ begin
 end;
 
 procedure CommentProc;
-var
-  s: String;
+//var
+//  s: String;
 
 const
   TestStr = 'Hello,'#10#10'This is a dummy child with errors.';
@@ -705,7 +709,7 @@ begin
   if Input^ = '/' then
     begin
       Inc(Input);
-
+      {
       // Is it a command?
       if (Input^ = '!') and (Token.Token in [ttNone, ttLine]) then
         begin
@@ -725,7 +729,7 @@ begin
             GoToLineEnd;
 
         end
-      else
+      else}
         GoToLineEnd;
 
       Next;

@@ -3,6 +3,7 @@ program ConsoleParser;
 {$APPTYPE CONSOLE}
 
 uses
+  Windows,
   Classes,
   SysUtils,
   Scanner in 'Parser\Scanner.pas',
@@ -16,11 +17,12 @@ uses
   Scopes in 'Parser\Scopes.pas',
   Blocks in 'Parser\Blocks.pas';
 
-var i, Errors, TotalErrors, TotalLines: Cardinal;
+var i, ParamStart, Errors, TotalErrors, TotalLines: Cardinal;
   FileDocument: PDocument;
   FileStream: TFileStream;
   FileMemory: PAnsiChar;
   Name: string;
+  DoImplictRealCatch: Boolean;
 
   procedure ReportErrors(Doc: PDocumentInfo; Name: String; var Number: Cardinal);
   var
@@ -44,6 +46,27 @@ var i, Errors, TotalErrors, TotalLines: Cardinal;
       end;
   end;
 
+function IsCommandLine: Boolean;
+var Cmd: String;
+begin
+  Cmd := ParamStr(ParamStart);
+  Result := (Cmd = '--implicit-reals') or (Cmd = '-ir')
+    or (Cmd = '--report-leaks');
+end;
+
+procedure ParseCommandLine;
+var Cmd: String;
+begin
+  Cmd := ParamStr(ParamStart);
+
+  if (Cmd = '--implicit-reals') or (Cmd = '-ir') then
+    DoImplictRealCatch := True
+  else if Cmd = '--report-leaks' then
+    ReportMemoryLeaksOnShutdown := True;
+
+  Inc(ParamStart);
+end;
+
 begin
   try
     Init;
@@ -51,10 +74,19 @@ begin
     TotalErrors := 0;
     TotalLines := 0;
 
-    ReportMemoryLeaksOnShutdown := True;
-    
-    for i := 1 to ParamCount do
+    DoImplictRealCatch := False;
+
+    ParamStart := 1;
+
+    while IsCommandLine do
+      ParseCommandLine;
+
+    for i := ParamStart to ParamCount do
       begin
+        Errors := 0;
+
+        ImplictRealCatch := DoImplictRealCatch and (LowerCase(ExtractFileName(ParamStr(i))) <> 'blizzard.j');
+        
         try
           FileStream := TFileStream.Create(ParamStr(i), fmOpenRead);
           FileMemory := nil;
@@ -68,24 +100,12 @@ begin
             New(FileDocument);
             FileDocument.Init;
             FileDocument.Info := Parse(FileMemory);
-            FileDocument.Info.Name := ExtractRelativePath(GetCurrentDir, ParamStr(i));
+            FileDocument.Info.Name := ParamStr(i);
             ParseDocument(FileDocument^);
 
             Name := ExtractRelativePath(GetCurrentDir, ParamStr(i));
 
-            Errors := 0;
-
             ReportErrors(FileDocument.Info, '', Errors);
-
-            TotalErrors := TotalErrors + Errors;
-            TotalLines := TotalLines + Token.Line;
-
-            if Errors = 0 then
-              WriteLn(Format('Parse successful: %8u lines: %s', [Token.Line, FileDocument.Info.Name]))
-            else if Errors = 1 then
-              WriteLn(FileDocument.Info.Name, ' failed with ' + IntToStr(Errors) + ' error')
-            else if Errors > 1 then
-              WriteLn(FileDocument.Info.Name, ' failed with ' + IntToStr(Errors) + ' errors');
 
           finally
             FreeAndNil(FileStream);
@@ -93,10 +113,25 @@ begin
           end;
 
           DocumentList.Add(FileDocument);
+          
         except
           on E:Exception do
-            Writeln(E.Classname, ': ', E.Message);
+            begin
+              Errors := Errors + 1;
+              WriteLn(ParamStr(i), ':' + IntToStr(Token.Line + 1) + ': ' + E.Classname, ': ', E.Message);
+              ExitCode := -1;
+            end;
         end;
+
+        TotalErrors := TotalErrors + Errors;
+        TotalLines := TotalLines + Token.Line;
+
+        if Errors = 0 then
+          WriteLn(Format('Parse successful: %8u lines: %s', [Token.Line, ParamStr(i)]))
+        else if Errors = 1 then
+          WriteLn(ParamStr(i), ' failed with ' + IntToStr(Errors) + ' error')
+        else if Errors > 1 then
+          WriteLn(ParamStr(i), ' failed with ' + IntToStr(Errors) + ' errors');
       end;
 
     if TotalErrors = 0 then
@@ -116,6 +151,9 @@ begin
 
   except
     on E:Exception do
-      Writeln(E.Classname, ': ', E.Message);
+      begin
+        MessageBox(0, PChar(E.Classname + ': ' + E.Message), 'JassParser', 0);
+        ExitCode := -1;
+      end;
   end;
 end.

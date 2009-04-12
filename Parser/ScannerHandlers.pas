@@ -151,21 +151,21 @@ begin
   Token.Stop := Input;
 end;
 
-procedure RealProc; inline;
+procedure RealProc;
 begin
   Inc(Input);
 
-  while Input^ in Num do
-    Inc(Input);
-
-  Token.Token := ttReal;
-  Token.Stop := Input;
-
-  if Input^ in Ident then
+  if Input^ in Num then
     begin
-      while Input^ in Ident do
+      while Input^ in Num do
         Inc(Input);
 
+      Token.Token := ttReal;
+      Token.Stop := Input;
+    end
+  else
+    begin
+      Token.Token := ttReal;
       Token.Stop := Input;
 
       TErrorInfo.Create(eiInvalidReal).Report;
@@ -173,91 +173,70 @@ begin
 end;
 
 procedure HexProc; inline;
-var Invalid: Boolean;
 begin
-  Invalid := False;
-
-  if Input^ = 'X' then
-    Invalid := True;
-    
   Inc(Input);
 
   if Input^ in Hex then
-    while Input^ in Hex do
-      Inc(Input)
-  else
-    Invalid := True;
-      
-  if Input^ in Ident then
     begin
-      while Input^ in Ident do
+      while Input^ in Hex do
         Inc(Input);
 
-      Token.Token := ttIdentifier;
       Token.Stop := Input;
-
-      TErrorInfo.Create(eiNumInIdent).Report;
+      Token.Token := ttHex;
     end
   else
     begin
       Token.Stop := Input;
       Token.Token := ttHex;
-      
-      if Invalid then
-        TErrorInfo.Create(eiInvalidHex).Report;
+
+      TErrorInfo.Create(eiInvalidHex).Report;
     end;
 end;
 
 procedure ZeroProc;
-var Invalid: Boolean;
 begin
     Inc(Input);
 
     case Input^ of
       'x', 'X': HexProc;
-      '.': RealProc;
-      else
-        begin
-          // Single 0 should be a regular number
-          if not ((Input^ in Num) or (Input^ in Ident)) then
-            begin
-              Token.Token := ttNumber;
-              Token.Stop := Input;
 
-              Exit;
-            end;
-            
+      '.':
+        begin
+          Inc(Input);
+
+          while Input^ in Num do
+            Inc(Input);
+
+          Token.Token := ttReal;
+          Token.Stop := Input;
+        end;
+
+      '0'..'9': // Octal
+        begin
           while Input^ in Octal do
             Inc(Input);
 
-          Invalid := False;
-
           if Input^ in Num then
             begin
-              Invalid := True;
-
               while Input^ in Num do
                 Inc(Input);
-            end;
 
-          if Input^ in Ident then
-            begin
-              while Input^ in Ident do
-                Inc(Input);
-
-              Token.Token := ttIdentifier;
-              Token.Stop := Input;
-
-              TErrorInfo.Create(eiNumInIdent).Report;
-            end
-          else     
-            begin
               Token.Token := ttOctal;
               Token.Stop := Input;
 
-              if Invalid then
-                TErrorInfo.Create(eiInvalidOctal).Report;
+              TErrorInfo.Create(eiInvalidOctal).Report;
+            end
+          else
+            begin
+              Token.Token := ttOctal;
+              Token.Stop := Input;
             end;
+        end;
+
+      else // Single 0 should be a regular number
+        begin
+          Token.Token := ttNumber;
+          Token.Stop := Input;
         end;
     end;
 end;
@@ -269,17 +248,7 @@ begin
   while Input^ in Num do
     Inc(Input);
 
-  if Input^ in Ident then
-    begin
-      while Input^ in Ident do
-        Inc(Input);
-
-      Token.Token := ttIdentifier;
-      Token.Stop := Input;
-
-      TErrorInfo.Create(eiNumInIdent).Report;
-    end
-  else if Input^ = '.' then
+  if Input^ = '.' then
     RealProc      
   else
     begin
@@ -289,7 +258,6 @@ begin
 end;
 
 procedure UnknownProc;
-var ErrorInfo: PErrorInfo;
 begin
   while @JumpTable[Byte(Input^)] = @UnknownProc do
     Inc(Input);
@@ -297,9 +265,11 @@ begin
   Token.Stop := Input;
   Token.Token := ttNone;
 
-  ErrorInfo := TErrorInfo.Create(eiInvalidChars);
-  ErrorInfo.Info := Token.StrNew;
-  ErrorInfo.Report;
+  with TErrorInfo.Create(eiInvalidChars)^ do
+    begin
+      Info := Token.StrNew;
+      Report;
+    end;
   
   Next;
 end;

@@ -21,6 +21,8 @@ var
 
   NothingType: PType;
 
+  ImplictRealCatch: Boolean = False;
+
 function CompitableOperators(AFromType, AToType: PType): Boolean; inline;
 function CompitableBaseTypes(AFromType, AToType: PType): Boolean; inline;
 
@@ -28,12 +30,27 @@ function Compitable(AFromType, AToType: PType; var Range: TRangeInfo; Weak: Bool
 function CompitableBoolean(AType: PType; var Range: TRangeInfo): PType; inline;
 function CompitableArithmetic(AType: PType; var Range: TRangeInfo): PType;
 
+function IntConstToRealOperators(AFromType, AToType: PType): Boolean; inline;
+function IntConstToReal(AFromType, AToType: PType): Boolean; inline;
+
 implementation
+
+function IntConstToRealOperators(AFromType, AToType: PType): Boolean;
+begin
+  Result := IntConstToReal(AFromType, AToType) or IntConstToReal(AToType, AFromType);
+end;
+
+function IntConstToReal(AFromType, AToType: PType): Boolean;
+begin
+  Result := ImplictRealCatch and (((AFromType = IntegerConstant) and (AToType = RealConstant)) or
+    ((AFromType = IntegerConstant) and (AToType = RealType)));
+end;
 
 function CompitableOperators(AFromType, AToType: PType): Boolean;
 begin
   Result := CompitableBaseTypes(AFromType, AToType) or CompitableBaseTypes(AToType, AFromType);
 end;
+
 
 function CompitableBaseTypes(AFromType, AToType: PType): Boolean;
 begin
@@ -124,6 +141,9 @@ begin
 
   if Weak and (BaseFromType = BaseToType) then
       Exit;
+
+  if IntConstToReal(BaseFromType, BaseToType) then
+    TErrorInfo.Create(eiImplicitIntegerConstToReal, Range).Report;
 
   if CompitableBaseTypes(BaseFromType, BaseToType) then
       Exit;

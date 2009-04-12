@@ -144,13 +144,13 @@ begin
 
             Report;
           end
-      else if CurrentConstant and (not Func.Constant) then
+      {else if CurrentConstant and (not Func.Constant) then
         with TErrorInfo.Create(eiFunctionInConstant)^ do
           begin
             Identifier := Func;
 
             Report;
-          end
+          end}
       else if CurrentLocal and (Func = CurrentFunc) then
         TErrorInfo.Create(eiRecursiveLocals)^.Report;
     end;
@@ -361,6 +361,10 @@ var
 
     ResultBase := Result.BaseType;
 
+
+    if IntConstToRealOperators(Base, ResultBase) then
+      TErrorInfo.Create(eiImplicitIntegerConstToReal, RangeInfo).Report;
+
     if CompitableOperators(Base, ResultBase) then
       Exit;
 
@@ -433,6 +437,9 @@ var
       CompitableArithmetic(NewType, RangeInfo);
 
     CompareBase := CompareType.BaseType;
+
+    if IntConstToRealOperators(Base, CompareBase) then
+      TErrorInfo.Create(eiImplicitIntegerConstToReal, RangeInfo).Report;
 
     if CompitableOperators(Base, CompareBase) then
       Exit;

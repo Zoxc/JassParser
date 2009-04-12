@@ -249,7 +249,15 @@ begin
     Inc(Input);
 
   if Input^ = '.' then
-    RealProc      
+    begin
+      Inc(Input);
+
+      while Input^ in Num do
+        Inc(Input);
+
+      Token.Token := ttReal;
+      Token.Stop := Input;
+    end
   else
     begin
       Token.Token := ttNumber;
@@ -422,8 +430,9 @@ begin
         '\':
           begin
             Inc(Input);
+            
             case Input^ of
-              'b', 't', 'r', 'n', 'f', '\':;
+              'b', 't', 'r', 'n', 'f', '\', '"':;
               else
                 begin
                   Temp := Token.Start;

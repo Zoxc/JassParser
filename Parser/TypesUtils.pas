@@ -59,6 +59,8 @@ begin
   if ((AFromType = HandleConstant) and (AToType = HandleType)) or
     ((AFromType = HandleConstant) and (AToType = StringType)) or
     ((AFromType = HandleConstant) and (AToType = StringConstant)) or
+    ((AFromType = HandleConstant) and (AToType = BooleanType)) or
+    ((AFromType = HandleConstant) and (AToType = BooleanConstant)) or
     ((AFromType = HandleConstant) and (AToType = IntegerType)) or
     ((AFromType = HandleConstant) and (AToType = IntegerConstant)) or
     ((AFromType = HandleConstant) and (AToType = CodeType)) or

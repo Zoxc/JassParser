@@ -460,6 +460,23 @@ begin
 
   Input := Text;
 
+  if Input^ = #$EF then
+    begin
+      Inc(Input);
+
+      if Input^ = #$BB then
+        begin
+          Inc(Input);
+
+          if Input^ = #$BF then
+            Inc(Input)
+          else
+            Input := Text;
+        end
+      else
+        Dec(Input);
+    end;
+
   Token.Token := ttNone;
   Token.Document := Document;
   Token.Line := 0;

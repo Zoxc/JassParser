@@ -52,6 +52,7 @@ begin
   Cmd := ParamStr(ParamStart);
   Result := (Cmd = '--implicit-reals') or (Cmd = '-ir')
     or (Cmd = '--report-leaks')
+    or (Cmd = '--return-bug') or (Cmd = '-rb')
     or (Cmd = '--help');
 end;
 
@@ -64,14 +65,17 @@ begin
     DoImplictRealCatch := True
   else if Cmd = '--report-leaks' then
     ReportMemoryLeaksOnShutdown := True
+  else if (Cmd = '--return-bug') or (Cmd = '-rb') then
+    DoReturnBug := True
   else if Cmd = '--help' then
     begin
-      Writeln('JassParserCLI 0.1.8');
+      Writeln('JassParserCLI 0.1.9');
       Writeln('-------------');
       Writeln('JassParserCLI <options> <documents>');
       Writeln('');
       Writeln('--implicit-reals and -ir: Reports implicit conversion from integer constants to reals');
       Writeln('--report-leaks: Reports memory leaks at shutdown');
+      Writeln('--return-bug and -rb: This will emulate the return bug');
       Writeln('--help: Shows this info');
       Abort;
     end;
@@ -87,6 +91,7 @@ begin
     TotalLines := 0;
 
     DoImplictRealCatch := False;
+    DoReturnBug := False;
 
     ParamStart := 1;
 

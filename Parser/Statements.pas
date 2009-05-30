@@ -7,6 +7,7 @@ uses SysUtils, Scanner;
 procedure ParseStatement;
 
 var
+  DoReturnBug: Boolean;
   CurrentLoop: Integer;
   CurrentReturnError: PErrorInfo;
   NoLocals: Boolean;
@@ -181,8 +182,8 @@ var
 begin
   ReturnToken := Token;
 
-  if CurrentReturnError <> nil then
-   CurrentReturnError.Pull;
+  if DoReturnBug and (CurrentReturnError <> nil) then
+    CurrentReturnError.Pull;
 
   NoReturn := False;
       

@@ -210,9 +210,9 @@ begin
       Range.Create;
 
       if CurrentFunc.Header.Returns = NothingType then
-        CurrentReturnError := Compitable(ParseExpression(Range), nil, Range, True)
+        CurrentReturnError := Compitable(ParseExpression(Range), nil, Range, DoReturnBug)
       else
-        CurrentReturnError := Compitable(ParseExpression(Range), CurrentFunc.Header.Returns, Range, True);
+        CurrentReturnError := Compitable(ParseExpression(Range), CurrentFunc.Header.Returns, Range, DoReturnBug);
     end;
 
   EndOfLine;

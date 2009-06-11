@@ -165,7 +165,7 @@ begin
 
       if Str^ = #0 then
         begin
-          Result := True;
+          Result := Start = Stop;
           Exit;
         end;
     end;

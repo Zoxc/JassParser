@@ -69,7 +69,7 @@ begin
     DoReturnBug := True
   else if Cmd = '--help' then
     begin
-      Writeln('JassParserCLI 0.1.9');
+      Writeln('JassParserCLI 0.1.11');
       Writeln('-------------');
       Writeln('JassParserCLI <options> <documents>');
       Writeln('');

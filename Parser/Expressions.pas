@@ -19,10 +19,16 @@ function ParseExpression(var Range: TRangeInfo): PType;
 
 implementation
 
+procedure ParseArrayIndex(var Range: TRangeInfo);
+begin
+  Match(ttSquareOpen, Range);
+  ParseExpression(Range);
+  Match(ttSquareClose, Range);
+end;
+
 function ParseVariable(var Range: TRangeInfo; Variable: PVariable): PType;
 var
   VarToken: TTokenInfo;
-  RangeInfo: TRangeInfo;
 begin
   VarToken := Token;
 
@@ -58,7 +64,7 @@ begin
   else
     Result := nil;
 
-  if Matches(ttSquareOpen, Range) then
+  if Token.Token = ttSquareOpen then
     begin
       if (Variable <> nil) and (not (vfArray in Variable.Flags)) then
         with TErrorInfo.Create(eiVariableNotArray, VarToken)^ do
@@ -67,12 +73,8 @@ begin
 
             Report;
           end;
-          
-      RangeInfo.Create;
-      ParseExpression(RangeInfo);
-      Range.Expand(RangeInfo);
 
-      Match(ttSquareClose, Range);
+        ParseArrayIndex(Range);
     end
   else if (Variable <> nil) and (vfArray in Variable.Flags) then
     with TErrorInfo.Create(eiVariableArray, VarToken)^ do
@@ -270,7 +272,10 @@ begin
 
               Scanner.Next(Range);
 
-              ParseFunctionParameters(Range, nil);
+              case Token.Token of
+                ttParentOpen: ParseFunctionParameters(Range, nil);
+                ttSquareOpen: ParseArrayIndex(Range);
+              end;
             end
         else
           case Identifier.IdentifierType of
@@ -280,7 +285,12 @@ begin
             else
               begin
                 UnexpectedIdentifier(Identifier);
-                ParseFunctionParameters(Range, nil);
+                Range.Expand;
+                
+                case Token.Token of
+                  ttParentOpen: ParseFunctionParameters(Range, nil);
+                  ttSquareOpen: ParseArrayIndex(Range);
+                end;
               end;
           end;
       end;
@@ -490,7 +500,7 @@ end;
 function ParseExpression(var Range: TRangeInfo): PType;
 var RangeInfo: TRangeInfo;
 begin
-  RangeInfo.Create; 
+  RangeInfo.Create;
   Result := ParseComparison(RangeInfo);
 
   if Token.Token in [ttAnd, ttOr] then

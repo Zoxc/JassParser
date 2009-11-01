@@ -145,7 +145,7 @@ begin
       Exit;
 
   if IntConstToReal(BaseFromType, BaseToType) then
-    TErrorInfo.Create(eiImplicitIntegerConstToReal, Range).Report;
+    TErrorInfo.Create(eiImplicitIntegerConstToReal, Range, ecHint).Report;
 
   if CompitableBaseTypes(BaseFromType, BaseToType) then
       Exit;

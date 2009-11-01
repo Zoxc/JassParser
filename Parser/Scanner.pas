@@ -51,6 +51,8 @@ type
     procedure GenerateChildErrors;
   end;
 
+  TErrorClass = (ecNone, ecError, ecWarning, ecHint, ecException);
+
   TErrorType = (eiInvalidChars, eiNumInIdent, eiExpectedToken, eiUnexpectedToken,
     eiChildErrors, eiRedeclared, eiExpectedIdentifier, eiUndeclaredIdentifier,
     eiConstantNeedInit, eiUnexpectedIdentifier, eiParameterCount,
@@ -74,11 +76,13 @@ type
 
     Next, Prev: PErrorInfo;
 
+    ErrorClass: TErrorClass;
+
     NoReport: Boolean;
 
-    class function Create(const ErrorType: TErrorType): PErrorInfo; overload; static;
-    class function Create(const ErrorType: TErrorType; var Token: TTokenInfo): PErrorInfo; overload; static;
-    class function Create(const ErrorType: TErrorType; const Range: TRangeInfo): PErrorInfo; overload; static;
+    class function Create(const ErrorType: TErrorType; ErrorClass: TErrorClass = ecError): PErrorInfo; overload; static;
+    class function Create(const ErrorType: TErrorType; var Token: TTokenInfo; ErrorClass: TErrorClass = ecError): PErrorInfo; overload; static;
+    class function Create(const ErrorType: TErrorType; const Range: TRangeInfo; ErrorClass: TErrorClass = ecError): PErrorInfo; overload; static;
     procedure Free;
 
     procedure Report;
@@ -115,6 +119,10 @@ var
   Input: PAnsiChar;
   Document: PDocumentInfo;
   JumpTable: array [0..255] of TProcedure;
+
+
+const
+  ErrorClassNames: array [TErrorClass] of String = ('None', 'Error', 'Warning', 'Hint', 'Exception');
 
 { Error handling }
 
@@ -313,10 +321,11 @@ begin
   Token.Document.LastError := @Self;
 end;
 
-class function TErrorInfo.Create(const ErrorType: TErrorType; const Range: TRangeInfo): PErrorInfo;
+class function TErrorInfo.Create(const ErrorType: TErrorType; const Range: TRangeInfo; ErrorClass: TErrorClass = ecError): PErrorInfo;
 begin
   New(Result);
   Result.ErrorType := ErrorType;
+  Result.ErrorClass := ErrorClass;
 
   Result.Start := Range.Start;
   Result.Length := Range.Length;
@@ -328,10 +337,11 @@ begin
   Token.Error := True;
 end;
 
-class function TErrorInfo.Create(const ErrorType: TErrorType; var Token: TTokenInfo): PErrorInfo;
+class function TErrorInfo.Create(const ErrorType: TErrorType; var Token: TTokenInfo; ErrorClass: TErrorClass = ecError): PErrorInfo;
 begin
   New(Result);
   Result.ErrorType := ErrorType;
+  Result.ErrorClass := ErrorClass;
 
   Result.Start := Token.Start;
   Result.Length := Token.Length;
@@ -351,9 +361,9 @@ begin
     end;
 end;
 
-class function TErrorInfo.Create(const ErrorType: TErrorType): PErrorInfo;
+class function TErrorInfo.Create(const ErrorType: TErrorType; ErrorClass: TErrorClass = ecError): PErrorInfo;
 begin
-  Result := Create(ErrorType, Token);
+  Result := Create(ErrorType, Token, ErrorClass);
 end;
 
 function TErrorInfo.ToString: String;

@@ -42,7 +42,7 @@ begin
             Report;
           end
       else if (not Variable.Initialized) and (vfLocal in Variable.Flags) then
-        with TErrorInfo.Create(eiUninitializedVariable)^ do
+        with TErrorInfo.Create(eiUninitializedVariable, ecWarning)^ do
           begin
             Identifier := Variable;
 
@@ -344,7 +344,7 @@ var
   procedure ValidateResult(NewType: PType);
   var
     Base: PType;
-    ResultBase: PType;
+    ResultBase, ResultOld: PType;
   begin
     if NewType = nil then
       Exit;
@@ -373,7 +373,12 @@ var
 
 
     if IntConstToRealOperators(Base, ResultBase) then
-      TErrorInfo.Create(eiImplicitIntegerConstToReal, RangeInfo).Report;
+      TErrorInfo.Create(eiImplicitIntegerConstToReal, RangeInfo, ecHint).Report;
+
+    ResultOld := Result;
+
+    if (Base = RealType) or (Base = RealConstant) then
+      Result := NewType;
 
     if CompitableOperators(Base, ResultBase) then
       Exit;
@@ -382,15 +387,12 @@ var
       with TErrorInfo.Create(eiConvertType, RangeInfo)^ do
         begin
           FromType := NewType;
-          ToType := Result;
-          
+          ToType := ResultOld;
+
           Report;
 
           Exit;
         end;
-
-    if (Base = RealType) or (Base = RealConstant) then
-      Result := NewType;
   end;
 
 begin
@@ -449,7 +451,7 @@ var
     CompareBase := CompareType.BaseType;
 
     if IntConstToRealOperators(Base, CompareBase) then
-      TErrorInfo.Create(eiImplicitIntegerConstToReal, RangeInfo).Report;
+      TErrorInfo.Create(eiImplicitIntegerConstToReal, RangeInfo, ecHint).Report;
 
     if CompitableOperators(Base, CompareBase) then
       Exit;

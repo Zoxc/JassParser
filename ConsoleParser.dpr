@@ -21,9 +21,25 @@ var i, ParamStart, Errors, TotalErrors, TotalLines: Cardinal;
   FileDocument: PDocument;
   FileStream: TFileStream;
   FileMemory: PAnsiChar;
-  Name: string;
   DoImplictRealCatch: Boolean;
+  EmulatePJASS: Boolean;
 
+  procedure SetResult(Result: TErrorClass);
+  begin
+    if EmulatePJASS then
+      begin
+        case Result of
+          ecError, ecException:
+            ExitCode := 1;
+        end;
+      end
+    else
+      begin
+        if Integer(Result) > ExitCode then
+          ExitCode := Integer(Result);
+      end;
+  end;
+  
   procedure ReportErrors(Doc: PDocumentInfo; Name: String; var Number: Cardinal);
   var
     ErrorInfo: PErrorInfo;
@@ -32,13 +48,17 @@ var i, ParamStart, Errors, TotalErrors, TotalLines: Cardinal;
 
     while ErrorInfo <> nil do
       begin
-        ExitCode := 1;
+        SetResult(ErrorInfo.ErrorClass);
 
         if ErrorInfo.ErrorType = eiChildErrors then
           ReportErrors(ErrorInfo.Child, Name + Doc.Name + ':', Number)
         else
           begin
-            WriteLn(Name + Doc.Name, ':' + IntToStr(ErrorInfo.Line + 1) + ': ' + ErrorInfo.ToString);
+            if EmulatePJASS then
+              WriteLn(Doc.Name, ':' + IntToStr(ErrorInfo.Line + 1) + ': ' + ErrorInfo.ToString)
+            else
+              WriteLn('[' + ErrorClassNames[ErrorInfo.ErrorClass] + '] ' + Name + Doc.Name, '(' + IntToStr(ErrorInfo.Line + 1) + ': ' + IntToStr(Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart) + 1) + '-' + IntToStr(Cardinal(ErrorInfo.Start) - Cardinal(ErrorInfo.LineStart) + 1 + ErrorInfo.Length) + '): ' + ErrorInfo.ToString);
+
             Inc(Number);
           end;
 
@@ -53,6 +73,7 @@ begin
   Result := (Cmd = '--implicit-reals') or (Cmd = '-ir')
     or (Cmd = '--report-leaks')
     or (Cmd = '--return-bug') or (Cmd = '-rb')
+    or (Cmd = '--pjass')
     or (Cmd = '--help');
 end;
 
@@ -65,15 +86,19 @@ begin
     DoImplictRealCatch := True
   else if Cmd = '--report-leaks' then
     ReportMemoryLeaksOnShutdown := True
+  else if Cmd = '--pjass' then
+    EmulatePJASS := True
   else if (Cmd = '--return-bug') or (Cmd = '-rb') then
     DoReturnBug := True
+
   else if Cmd = '--help' then
     begin
-      Writeln('JassParserCLI 0.1.11');
+      Writeln('JassParserCLI 0.1.12');
       Writeln('-------------');
       Writeln('JassParserCLI <options> <documents>');
       Writeln('');
       Writeln('--implicit-reals and -ir: Reports implicit conversion from integer constants to reals');
+      Writeln('--pjass: Emulate PJASS CLI');
       Writeln('--report-leaks: Reports memory leaks at shutdown');
       Writeln('--return-bug and -rb: This will emulate the return bug');
       Writeln('--help: Shows this info');
@@ -92,6 +117,7 @@ begin
 
     DoImplictRealCatch := False;
     DoReturnBug := False;
+    EmulatePJASS := False;
 
     ParamStart := 1;
 
@@ -121,8 +147,6 @@ begin
               FileDocument.Info.Name := ParamStr(i);
               ParseDocument(FileDocument^);
 
-              Name := ExtractRelativePath(GetCurrentDir, ParamStr(i));
-
               ReportErrors(FileDocument.Info, '', Errors);
 
             finally
@@ -136,29 +160,40 @@ begin
             on E:Exception do
               begin
                 Errors := Errors + 1;
-                WriteLn(ParamStr(i), ':' + IntToStr(Token.Line + 1) + ': ' + E.Classname, ': ', E.Message);
-                ExitCode := -1;
+
+                if EmulatePJASS then
+                  WriteLn(ParamStr(i), ':' + IntToStr(Token.Line + 1) + ': ' + E.Classname, ': ', E.Message)
+                else
+                  WriteLn('[Exception] ' + ParamStr(i), '(' + IntToStr(Token.Line + 1) + ': ' + IntToStr(Cardinal(Token.Start) - Cardinal(Token.LineStart) + 1) + '-' + IntToStr(Cardinal(Token.Stop) - Cardinal(Token.LineStart) + 1) + '): ' + E.Classname, ': ', E.Message);
+
+                SetResult(ecException);
               end;
           end;
 
           TotalErrors := TotalErrors + Errors;
           TotalLines := TotalLines + Token.Line;
 
-          if Errors = 0 then
-            WriteLn(Format('Parse successful: %8u lines: %s', [Token.Line, ParamStr(i)]))
-          else if Errors = 1 then
-            WriteLn(ParamStr(i), ' failed with ' + IntToStr(Errors) + ' error')
-          else if Errors > 1 then
-            WriteLn(ParamStr(i), ' failed with ' + IntToStr(Errors) + ' errors');
+          if EmulatePJASS then
+            begin
+              if Errors = 0 then
+                WriteLn(Format('Parse successful: %8u lines: %s', [Token.Line, ParamStr(i)]))
+              else if Errors = 1 then
+               WriteLn(ParamStr(i), ' failed with ' + IntToStr(Errors) + ' error')
+             else if Errors > 1 then
+                WriteLn(ParamStr(i), ' failed with ' + IntToStr(Errors) + ' errors');
+            end;
         end;
 
-      if TotalErrors = 0 then
-        WriteLn(Format('Parse successful: %8u lines: %s', [TotalLines, '<total>']))
-      else if TotalErrors = 1 then
-        WriteLn('Parse failed: ' + IntToStr(TotalErrors) + ' error total')
-      else if TotalErrors > 1 then
-        WriteLn('Parse failed: ' + IntToStr(TotalErrors) + ' errors total');
-
+      if EmulatePJASS then
+        begin
+          if TotalErrors = 0 then
+           WriteLn(Format('Parse successful: %8u lines: %s', [TotalLines, '<total>']))
+          else if TotalErrors = 1 then
+            WriteLn('Parse failed: ' + IntToStr(TotalErrors) + ' error total')
+          else if TotalErrors > 1 then
+            WriteLn('Parse failed: ' + IntToStr(TotalErrors) + ' errors total');
+        end;
+      
       for i := 1 to DocumentList.Count - 1 do
         with PDocument(DocumentList[i])^ do
           begin
@@ -168,10 +203,11 @@ begin
           end;
 
     except
-      on E:Exception do
+      on E: Exception do
         begin
           MessageBox(0, PChar(E.Classname + ': ' + E.Message), 'JassParser', 0);
-          ExitCode := -1;
+          
+          SetResult(ecException);
         end;
     end;
 
